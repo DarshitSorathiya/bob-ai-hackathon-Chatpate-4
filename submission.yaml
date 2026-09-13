@@ -1,69 +1,76 @@
 # =============================================================================
 # HACKATHON SUBMISSION METADATA
 # =============================================================================
-# Instructions:
-#   - Fill in ALL required fields (marked with # REQUIRED)
-#   - Optional fields can be left as empty strings ""
-#   - Do NOT rename this file — the evaluation pipeline reads it by name
-#   - Use double quotes around all string values
-# =============================================================================
 
 team:
-  name: ""                             # REQUIRED — e.g., "Orion Squad"
-  track: ""                            # REQUIRED — one of: AI | DevOps | Sustainability | Open
+  name: "Chatpate-4"
+  track: "AI"
   lead:
-    name: ""                           # REQUIRED — e.g., "Alice Chen"
-    email: ""                          # REQUIRED — e.g., "alice.chen@ibm.com"
+    name: "Darshit Sorathiya"
+    email: ""
   members:
-    - name: ""                         # REQUIRED — Team member 1
+    - name: "Tulsi Dhameliya"
+      email: "tulsidhameliya66@gmail.com"
+    - name: "Mahi Pandey"
       email: ""
-    - name: ""                         # Add more members by copying the two lines above
-      email: ""
-    - name: ""
+    - name: "Shreyan Varsani"
       email: ""
 
 submission:
-  title: ""                            # REQUIRED — Project display name, e.g., "SmartOps Dashboard"
+  title: "MissionReady Copilot"
 
-  problem_statement: >                 # REQUIRED — 1-3 sentences. What problem? Who has it?
-    Replace this text with a concise description of the real-world problem
-    your project addresses and who experiences it.
+  problem_statement: >
+    Military organisations struggle to determine the real-time mission readiness
+    of aircraft, vehicles, and equipment because maintenance is often based on
+    fixed schedules rather than actual component condition. HUMS sensor data and
+    service records that could reveal early signs of failure often remain
+    underanalysed, leading to unexpected breakdowns, reduced operational
+    readiness, and inefficient maintenance planning.
 
-  solution_summary: >                  # REQUIRED — 1-3 sentences. What did you build?
-    Replace this text with a clear description of your solution
-    and how it addresses the problem above.
+  solution_summary: >
+    We built an AI-powered Mission Readiness and Predictive Maintenance Copilot
+    that analyses sensor data and historical service records to identify
+    non-ready assets, explain the reasons behind readiness issues, predict
+    potential component failures, and generate a prioritised maintenance plan
+    for upcoming mission windows.
 
-  key_features:                        # REQUIRED — List 3 to 5 specific features you implemented
-    - ""                               # e.g., "Real-time pipeline anomaly detection using watsonx.ai"
-    - ""
-    - ""
-    - ""                               # optional 4th
-    - ""                               # optional 5th
+  key_features:
+    - "Mission-readiness assessment for individual assets using sensor and service data"
+    - "Explainable identification of readiness issues and abnormal component behaviour"
+    - "Predictive failure-risk analysis for components before the next mission window"
+    - "Prioritised maintenance recommendations based on risk, urgency, and mission impact"
+    - "AI copilot interface for querying asset health and maintenance insights"
 
   tech_stack:
-    languages: []                      # REQUIRED — e.g., ["Python", "TypeScript"]
-    frameworks: []                     # e.g., ["FastAPI", "React"]
-    ibm_technologies: []               # e.g., ["watsonx.ai", "IBM Bob", "IBM Cloud Functions"]
-    databases: []                      # e.g., ["PostgreSQL", "Redis"]
-    other: []                          # e.g., ["Docker", "GitHub Actions", "Slack API"]
+    languages: ["Python", "JavaScript"]
+    frameworks: ["FastAPI", "React"]
+    ibm_technologies: ["IBM Bob"]
+    databases: ["PostgreSQL"]
+    other: ["Pandas", "Scikit-learn", "REST APIs", "Git", "Docker"]
 
-  what_we_are_most_proud_of: >         # Optional but recommended — guides judges to your best work
-    Replace with what aspect of the submission you consider strongest
-    and want judges to pay special attention to.
+  what_we_are_most_proud_of: >
+    Our strongest feature is connecting predictive analytics with explainable
+    mission-readiness decisions. Instead of only predicting that a component
+    may fail, the copilot connects sensor trends and service history to explain
+    why an asset is at risk and translates those findings into an actionable,
+    prioritised maintenance plan.
 
-  known_limitations: >                 # Optional but recommended — be honest about gaps
-    Replace with any known limitations, incomplete features,
-    or shortcuts taken due to time constraints.
+  known_limitations: >
+    The prototype uses simulated or historical datasets rather than live
+    military HUMS feeds. Predictive accuracy is therefore dependent on the
+    quality and coverage of the available training data, and the prototype is
+    intended as a decision-support system rather than an autonomous maintenance
+    or operational control system.
+
 
 # =============================================================================
 # ARTIFACT LOCATIONS
-# These paths are relative to the repo root. Only change if you moved files.
 # =============================================================================
 artifacts:
   source_code: "src/"
   setup_guide: "docs/setup-guide.md"
   architecture_doc: "docs/architecture.md"
-  demo_video: "demo/demo-video-link.txt"   # URL to hosted video (YouTube, Loom, Box)
-  live_demo: "demo/live-demo-url.txt"      # URL to deployed demo (optional)
+  demo_video: "demo/demo-video-link.txt"
+  live_demo: "demo/live-demo-url.txt"
   screenshots: "demo/screenshots/"
   presentation: "presentation/"
