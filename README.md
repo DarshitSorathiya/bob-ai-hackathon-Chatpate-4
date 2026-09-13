@@ -113,37 +113,38 @@ graph TD
 The architecture follows a decoupled, modular design ensuring clear separation between data storage, machine learning inference, API business logic, conversational AI integration, and the frontend presentation layer.
 
 ```mermaid
-graph TD
-    subgraph Data & Input Layer
+flowchart TD
+
+    subgraph DataInput["Data & Input Layer"]
         A1["HUMS Sensor Telemetry"]
         A2["Historical Service Records"]
         A3["Mission Window Schedules"]
     end
 
-    subgraph Backend & API Layer (FastAPI)
+    subgraph Backend["Backend & API Layer - FastAPI"]
         B1["FastAPI Core App"]
-        B2["Data Preprocessing Engine (Pandas)"]
-        B3["Predictive Analytics Engine (Scikit-learn)"]
+        B2["Data Preprocessing Engine - Pandas"]
+        B3["Predictive Analytics Engine - Scikit-learn"]
         B4["Readiness & Scoring Logic Engine"]
     end
 
-    subgraph Storage Layer
+    subgraph Storage["Storage Layer"]
         C1[("PostgreSQL Database")]
     end
 
-    subgraph AI & Copilot Layer
+    subgraph AI["AI & Copilot Layer"]
         D1["IBM Bob Copilot Integration"]
         D2["Explainability Context Formatter"]
     end
 
-    subgraph Frontend Layer (React)
+    subgraph Frontend["Frontend Layer - React"]
         E1["React Asset Health Dashboard"]
         E2["Prioritised Maintenance View"]
         E3["Interactive Copilot Chat UI"]
     end
 
     A1 -->|HTTP POST| B1
-    A2 -->|Database Seed / API| B1
+    A2 -->|Database Seed or API| B1
     A3 -->|Mission Parameter Input| B1
 
     B1 <-->|ORM / Queries| C1
