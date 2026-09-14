@@ -10,10 +10,10 @@ export default function AuthLayout({ children, title, subtitle }) {
       {/* 1. Full-Viewport Interactive HUMS Sensor Background Layer */}
       <HumsSensorCanvas />
 
-      {/* 2. Top Header Bar */}
-      <header className="relative z-10 w-full px-6 py-4 flex justify-between items-center border-b border-slate-800/60 bg-[#060911]/60 backdrop-blur-md">
-        <Link href="/login" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 group-hover:bg-blue-600/30 transition-colors">
+      {/* 2. Top Header Bar (Positioned to Top Leftmost Corner) */}
+      <header className="relative z-10 w-full px-4 sm:px-6 py-3.5 flex justify-between items-center border-b border-slate-800/60 bg-[#060911]/60 backdrop-blur-md">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 group-hover:bg-blue-600/30 transition-colors shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-4 h-4"
@@ -55,7 +55,7 @@ export default function AuthLayout({ children, title, subtitle }) {
       {/* 3. Dead-Center Solid High-Readability Authentication Layout */}
       <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 py-8 max-w-7xl mx-auto">
         <div className="w-full max-w-md">
-          {/* Solid Translucent Auth Card (Reduced Transparency for Maximum Readability) */}
+          {/* Solid Translucent Auth Card */}
           <div className="bg-[#090d16]/96 border border-slate-700/80 backdrop-blur-xl p-8 shadow-2xl rounded-2xl relative">
             {/* Header Content inside Card */}
             <div className="text-center mb-6">

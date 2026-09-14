@@ -897,6 +897,10 @@ video {
   gap: 0.5rem;
 }
 
+.gap-2\.5 {
+  gap: 0.625rem;
+}
+
 .gap-3 {
   gap: 0.75rem;
 }
@@ -1274,11 +1278,6 @@ video {
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem;
-}
-
-.py-6 {
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
 }
 
 .py-8 {
@@ -1870,6 +1869,11 @@ body {
 
   .sm\:flex-row {
     flex-direction: row;
+  }
+
+  .sm\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
   .sm\:pt-16 {

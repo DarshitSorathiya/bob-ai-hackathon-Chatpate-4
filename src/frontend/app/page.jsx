@@ -38,14 +38,14 @@ export default function HomePage() {
         <LandingRadarCanvas />
       </div>
 
-      {/* Top Header Branding Bar */}
+      {/* Top Header Branding Bar (Positioned to Top Leftmost Corner) */}
       <header
-        className={`relative z-20 w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto transition-all duration-700 ${
+        className={`relative z-20 w-full px-4 sm:px-6 py-4 flex justify-between items-center transition-all duration-700 ${
           isTransitioning ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shrink-0">
             <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <path d="m9 12 2 2 4-4" />
