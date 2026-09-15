@@ -1,3 +1,15 @@
+# docker-compose.prod.yml — pull pre-built images from Docker Hub
+#
+# Usage (no local build required):
+#   DOCKERHUB_USERNAME=yourhandle docker compose -f docker-compose.prod.yml up -d
+#
+# Or export it once in your shell:
+#   export DOCKERHUB_USERNAME=yourhandle
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Set IMAGE_TAG to pin a specific release (default: latest):
+#   IMAGE_TAG=v1.2.3 docker compose -f docker-compose.prod.yml up -d
+
 services:
   # ─── PostgreSQL database ───────────────────────────────────────────────────
   db:
@@ -7,8 +19,6 @@ services:
       POSTGRES_USER: missionready
       POSTGRES_PASSWORD: missionready_dev_password
       POSTGRES_DB: missionready
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,17 +27,13 @@ services:
       timeout: 5s
       retries: 10
 
-  # ─── Alembic migrations (one-shot; exits after upgrading schema) ───────────
+  # ─── Alembic migrations (one-shot) ────────────────────────────────────────
   migrate:
-    build:
-      context: ./src/backend
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/missionready-backend:${IMAGE_TAG:-latest}
     command: alembic upgrade head
     env_file:
       - ./src/.env
     environment:
-      # Override the DATABASE_URL host so it resolves inside the Docker network.
-      # The value in src/.env uses localhost (for local dev without Docker).
       DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
     depends_on:
       db:
@@ -36,39 +42,24 @@ services:
 
   # ─── FastAPI backend ───────────────────────────────────────────────────────
   backend:
-    build:
-      context: ./src/backend
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/missionready-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "8000:8000"
     env_file:
       - ./src/.env
     environment:
-      # Override the DATABASE_URL host (same reason as the migrate service).
       DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
-      # Allow requests from the frontend container and the host browser.
       CORS_ORIGINS: "http://localhost:3000,http://frontend:3000"
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
-    command: >
-      uvicorn app.main:app
-        --host 0.0.0.0
-        --port 8000
-        --reload
 
   # ─── Next.js frontend ─────────────────────────────────────────────────────
   frontend:
-    build:
-      context: ./src/frontend
-      dockerfile: Dockerfile
-      args:
-        # The browser calls this URL, so it must be reachable from the host.
-        NEXT_PUBLIC_API_URL: "http://localhost:8000/api/v1"
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ""   # set in src/.env or override here
+    image: ${DOCKERHUB_USERNAME}/missionready-frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "3000:3000"
