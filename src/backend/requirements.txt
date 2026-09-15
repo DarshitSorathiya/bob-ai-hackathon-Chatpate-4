@@ -46,14 +46,14 @@ python-multipart==0.0.20
 anyio==4.15.1
 
 # --- AI / LLM clients (optional — copilot backends) ---
-groq==0.28.0
+groq==1.7.0
 
 # --- ML ---
-numpy==2.2.0
-pandas==2.2.3
-scipy==1.14.1
-scikit-learn==1.6.0
-xgboost==2.1.2
-lightgbm==4.5.0
-pyarrow==18.1.0
-joblib==1.4.2
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+xgboost==3.4.1
+lightgbm==4.7.0
+pyarrow==25.0.1
+joblib==1.6.0

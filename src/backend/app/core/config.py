@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     # Groq (optional — fallback LLM if watsonx.ai is unavailable)
     groq_api_key: str | None = None
-    groq_model: str = "llama3-8b-8192"
+    groq_model: str = "compound-beta"
 
     # Logging
     log_level: str = "INFO"
