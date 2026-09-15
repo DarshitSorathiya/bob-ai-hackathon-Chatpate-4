@@ -94,3 +94,15 @@ logs/
 .terraform/
 *.tfstate
 *.tfstate.backup
+
+# ── MissionReady specific ──────────────────────────────────────────────────────
+src/.env
+# ML data (large binary/raw files — download via scripts)
+src/backend/data/raw/
+src/backend/data/processed/
+src/backend/data/synthetic/
+# Trained model artifacts
+src/backend/app/ml/models/*.pkl
+src/backend/app/ml/models/*.joblib
+# Frontend Vite build
+src/frontend-new/dist/
