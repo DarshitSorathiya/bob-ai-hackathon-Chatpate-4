@@ -2,44 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Loader2, Bot, User, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Send, Loader2, Bot, User } from 'lucide-react';
 import { isAuthenticated, queryCopilot } from '../../lib/api';
 import NavBar from '../../components/NavBar';
-
-function EvidencePanel({ evidence }) {
-  const [open, setOpen] = useState(false);
-  if (!evidence?.length) return null;
-  return (
-    <div className="mt-3 border border-slate-800 rounded-lg overflow-hidden text-[11px] font-mono">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-slate-900/60 text-slate-400 hover:text-slate-200 transition-colors"
-      >
-        <span className="flex items-center gap-1.5">
-          <Info className="w-3 h-3" />
-          Evidence ({evidence.length} source{evidence.length !== 1 ? 's' : ''})
-        </span>
-        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-      </button>
-      {open && (
-        <div className="divide-y divide-slate-800">
-          {evidence.map((e, i) => (
-            <div key={i} className="px-3 py-2 bg-slate-950/50">
-              <p className="text-blue-400 mb-1">{e.tool_name}: {e.query}</p>
-              {e.error ? (
-                <p className="text-red-400">{e.error}</p>
-              ) : (
-                <pre className="text-slate-400 text-[10px] overflow-x-auto whitespace-pre-wrap max-h-40">
-                  {JSON.stringify(e.data, null, 2)}
-                </pre>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function ModelBadge({ modelUsed }) {
   if (!modelUsed) return null;
@@ -85,7 +50,6 @@ function ChatMessage({ msg }) {
           <p className="whitespace-pre-wrap">{msg.content}</p>
           <ModelBadge modelUsed={msg.model_used} />
         </div>
-        {msg.evidence && <EvidencePanel evidence={msg.evidence} />}
       </div>
       {isUser && (
         <div className="w-8 h-8 rounded-full bg-slate-700/50 border border-slate-600 flex items-center justify-center shrink-0">
@@ -136,7 +100,6 @@ export default function CopilotPage() {
       setMessages((prev) => [...prev, {
         role: 'assistant',
         content: res.answer,
-        evidence: res.evidence,
         model_used: res.model_used,
       }]);
     } catch {
