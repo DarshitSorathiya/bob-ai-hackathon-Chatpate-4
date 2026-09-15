@@ -47,8 +47,8 @@ services:
     environment:
       # Override the DATABASE_URL host (same reason as the migrate service).
       DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
-      # Allow requests from the frontend container and the host browser.
-      CORS_ORIGINS: "http://localhost:3000,http://frontend:3000"
+      # Allow requests from the host browser and the frontend container.
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:5173,http://frontend:3000"
     depends_on:
       db:
         condition: service_healthy
