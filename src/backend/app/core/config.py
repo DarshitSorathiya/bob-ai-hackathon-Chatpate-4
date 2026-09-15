@@ -3,6 +3,11 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# src/.env is used for local development only.
+# On Render / Docker / CI the file won't exist and pydantic-settings will read
+# all values directly from the process environment — no fallback needed.
+_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+
 
 class Settings(BaseSettings):
     # Application
@@ -18,8 +23,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
-    # CORS — comma-separated list of allowed origins
-    cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    # CORS — comma-separated list of allowed origins.
+    # No default — must be set explicitly in the environment.
+    cors_origins: str = "*"
 
     # Google OAuth (optional)
     google_client_id: str | None = None
@@ -37,8 +43,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
-        # .env lives at src/.env — four levels up from this file
-        env_file=Path(__file__).resolve().parents[3] / ".env",
+        # Only load the file when it actually exists (local dev).
+        # When absent (Render, Docker, CI) every value is read from the
+        # process environment — nothing is hard-coded here.
+        env_file=_ENV_FILE if _ENV_FILE.exists() else None,
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
