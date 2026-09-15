@@ -1,21 +1,30 @@
-# Problem Statement
+Background
 
-## Background
+Military aviation and defence organisations operate aircraft, vehicles, and other critical equipment where mission readiness and reliability are essential. These assets generate large amounts of HUMS sensor data, usage information, and maintenance records that can provide early indications of component degradation or failure.
 
-[Describe the broader context. What domain or industry does this problem belong to? What situation creates the problem?]
+The Problem
 
-## The Problem
+Maintenance decisions are often driven by fixed schedules and periodic inspections rather than the actual condition of individual components. As a result, early warning signals in sensor data may go unnoticed, making it difficult to identify which assets are at risk and which components should be serviced before an upcoming mission.
 
-[State the problem clearly and specifically. Avoid vague statements like "things are slow" — instead say "Operations teams spend an average of 45 minutes per incident diagnosing pipeline failures because logs are scattered across 6 different tools."]
+This can result in unexpected failures, unplanned downtime, reduced mission readiness, and inefficient use of maintenance resources.
 
-## Who is Affected
+Who is Affected
 
-[Describe the specific user or persona experiencing this problem. Be concrete — not "developers" but "backend engineers managing CI/CD pipelines in enterprises with 50+ microservices."]
+The problem primarily affects:
 
-## Why It Matters
+Maintenance engineers who need to identify failing or degraded components.
+Mission operations teams who need to know whether assets are ready for upcoming missions.
+Fleet and maintenance managers who must prioritise limited maintenance resources across multiple assets.
+Why It Matters
 
-[What is the cost of this problem? Lost time? Revenue? Safety risk? Frustration? Quantify if possible.]
+An unexpected failure of a critical asset can cause mission delays, extended downtime, costly repairs, and reduced operational availability. Analysing sensor and maintenance data proactively can help teams detect potential failures earlier and focus maintenance efforts where they matter most.
 
-## Why Existing Solutions Fall Short
+Why Existing Solutions Fall Short
 
-[Briefly explain what people currently do and why it doesn't fully solve the problem. This sets up why your solution is needed.]
+Traditional maintenance approaches rely heavily on scheduled inspections and manual analysis of maintenance records and sensor information. While these methods are useful, they may not continuously connect:
+
+Sensor trends + Maintenance history + Asset condition + Upcoming mission requirements
+
+This makes it difficult to predict failures early and determine which maintenance task should receive priority.
+
+Therefore, there is a need for an intelligent decision-support system that can transform available sensor and maintenance data into explainable readiness assessments, failure-risk predictions, and prioritised maintenance recommendations.
