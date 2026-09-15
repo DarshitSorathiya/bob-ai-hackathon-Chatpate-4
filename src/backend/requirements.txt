@@ -5,44 +5,44 @@
 # Run from src/backend/:  pip install -r requirements.txt
 
 # --- Web framework ---
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-starlette==0.41.3
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+starlette==1.6.0
 
 # --- Database ---
-SQLAlchemy==2.0.36
-psycopg[binary]==3.2.3
-alembic==1.14.0
+SQLAlchemy==2.0.53
+psycopg[binary]==3.3.5
+alembic==1.20.0
 
 # --- Validation & settings ---
 pydantic==2.13.5
-pydantic-settings==2.7.1
+pydantic-settings==2.15.0
 pydantic-core==2.46.5
-email-validator==2.2.0
+email-validator==2.3.0
 
 # --- Auth ---
-PyJWT==2.10.1
-pwdlib[argon2]==0.2.1
-google-auth==2.37.0
+PyJWT==2.14.0
+pwdlib[argon2]==0.3.1
+google-auth==2.58.0
 
 # --- Rate limiting ---
-slowapi==0.1.9
-limits==3.14.1
+slowapi==0.1.10
+limits==5.8.0
 
 # --- Structured logging ---
-structlog==25.3.0
+structlog==26.1.0
 
 # --- HTTP client (used in tests) ---
 httpx==0.28.1
 
 # --- Testing ---
-pytest==8.3.4
-pytest-asyncio==0.25.3
-pytest-cov==6.1.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
 
 # --- Utilities ---
 python-dotenv==1.2.3
-python-multipart==0.0.20
+python-multipart==0.0.32
 anyio==4.15.1
 
 # --- AI / LLM clients (optional — copilot backends) ---
