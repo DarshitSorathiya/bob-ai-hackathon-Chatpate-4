@@ -41,25 +41,49 @@ function EvidencePanel({ evidence }) {
   );
 }
 
+function ModelBadge({ modelUsed }) {
+  if (!modelUsed) return null;
+  const isWatsonx = modelUsed.startsWith('ibm/');
+  const isGroq    = modelUsed.startsWith('groq/');
+  const cls = isWatsonx
+    ? 'text-blue-400 border-blue-500/30 bg-blue-500/10'
+    : isGroq
+    ? 'text-violet-400 border-violet-500/30 bg-violet-500/10'
+    : 'text-slate-500 border-slate-700 bg-slate-800/40';
+  const label = isWatsonx ? `IBM watsonx · ${modelUsed.replace('ibm/', '')}`
+              : isGroq    ? `Groq · ${modelUsed.replace('groq/', '')}`
+              : modelUsed;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] border mt-2 ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
 function ChatMessage({ msg }) {
-  const isUser = msg.role === 'user';
+  const isUser  = msg.role === 'user';
+  const isError = msg.isError;
   return (
     <div className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center shrink-0">
-          <Bot className="w-4 h-4 text-blue-400" />
+        <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
+          isError
+            ? 'bg-amber-600/20 border-amber-500/40'
+            : 'bg-blue-600/20 border-blue-500/40'
+        }`}>
+          <Bot className={`w-4 h-4 ${isError ? 'text-amber-400' : 'text-blue-400'}`} />
         </div>
       )}
       <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
         <div className={`rounded-xl px-4 py-3 text-sm ${
           isUser
             ? 'bg-blue-600/20 border border-blue-500/30 text-slate-100'
+            : isError
+            ? 'bg-amber-950/30 border border-amber-800/40 text-amber-200'
             : 'bg-slate-900/60 border border-slate-800 text-slate-200'
         }`}>
           <p className="whitespace-pre-wrap">{msg.content}</p>
-          {msg.model_used && (
-            <p className="text-[10px] text-slate-500 font-mono mt-2">Model: {msg.model_used}</p>
-          )}
+          <ModelBadge modelUsed={msg.model_used} />
         </div>
         {msg.evidence && <EvidencePanel evidence={msg.evidence} />}
       </div>
@@ -115,10 +139,11 @@ export default function CopilotPage() {
         evidence: res.evidence,
         model_used: res.model_used,
       }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        content: `Error: ${err.message}`,
+        isError: true,
+        content: 'The AI copilot service is unavailable right now. Please try again later or contact your system administrator.',
       }]);
     } finally {
       setLoading(false);
