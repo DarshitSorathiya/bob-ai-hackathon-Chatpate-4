@@ -5,7 +5,10 @@ Architecture:
   1. Intent detection: route the query to the right backend tools.
   2. Tool execution: query real database records (NO invented values).
   3. Evidence assembly: build a structured context string.
-  4. LLM call: IBM watsonx.ai receives ONLY the question + context.
+  4. LLM call — provider priority:
+       a) IBM watsonx.ai (WATSONX_API_KEY + WATSONX_PROJECT_ID)
+       b) Groq           (GROQ_API_KEY) — automatic fallback
+       c) "Service unavailable" — if neither key is present
      The model explains evidence; it does NOT invent readiness decisions.
   5. Evidence logging: every tool call and LLM response is logged.
 
@@ -14,8 +17,8 @@ The LLM is isolated from operational decisions:
   - It NEVER produces telemetry values (those come from the DB).
   - It ONLY explains retrieved evidence in natural language.
 
-If watsonx credentials are absent, the copilot returns structured
-evidence without an LLM-generated explanation (graceful degradation).
+If neither provider is configured the copilot returns a clean
+"service unavailable" message — no stack traces exposed to callers.
 """
 from __future__ import annotations
 
@@ -146,9 +149,9 @@ class CopilotService:
         # Build context string from evidence
         context = self._build_context(question, evidence)
 
-        # Call LLM if configured
+        # Call LLM — try watsonx, fall back to Groq, else unavailable
         settings = get_settings()
-        answer, model_used = self._call_watsonx(question, context, settings)
+        answer, model_used = self._call_llm(question, context, settings)
 
         return CopilotResponse(
             query=question,
@@ -324,24 +327,49 @@ class CopilotService:
         return "\n".join(parts)
 
     # ------------------------------------------------------------------
-    # watsonx.ai LLM call
+    # LLM dispatch — watsonx.ai → Groq → unavailable
     # ------------------------------------------------------------------
 
+    _SYSTEM_PROMPT = (
+        "You are MissionReady Copilot, an AI assistant for military aviation maintenance operations. "
+        "You ONLY explain information from the provided backend evidence. "
+        "You NEVER invent sensor readings, predictions, or maintenance decisions."
+    )
+
     @staticmethod
-    def _call_watsonx(question: str, context: str, settings) -> tuple[str, str | None]:
-        """Call IBM watsonx.ai with the grounded context.
+    def _call_llm(question: str, context: str, settings) -> tuple[str, str | None]:
+        """Try watsonx.ai first, then Groq, then return a clean unavailable message.
 
-        Returns (answer_text, model_id_used).
-        Falls back to structured-evidence-only answer if credentials are absent.
+        Returns (answer_text, model_id_used | None).
+        No stack traces are ever surfaced to the caller.
         """
-        if not settings.watsonx_api_key or not settings.watsonx_project_id:
-            logger.info("watsonx_credentials_absent", msg="Returning structured evidence without LLM")
-            return (
-                "[Copilot: watsonx.ai credentials not configured — returning structured evidence only.]\n\n"
-                + context,
-                None,
-            )
+        # ── 1. IBM watsonx.ai ────────────────────────────────────────────
+        if settings.watsonx_api_key and settings.watsonx_project_id:
+            result = CopilotService._try_watsonx(context, settings)
+            if result is not None:
+                return result
 
+        # ── 2. Groq fallback ─────────────────────────────────────────────
+        if settings.groq_api_key:
+            result = CopilotService._try_groq(context, settings)
+            if result is not None:
+                return result
+
+        # ── 3. Neither provider available ────────────────────────────────
+        if not settings.watsonx_api_key and not settings.groq_api_key:
+            logger.info("copilot_no_llm_configured", msg="No LLM provider configured")
+        else:
+            logger.warning("copilot_all_providers_failed", msg="All configured LLM providers failed")
+
+        return (
+            "The AI copilot service is unavailable right now. "
+            "Please try again later or contact your system administrator.",
+            None,
+        )
+
+    @staticmethod
+    def _try_watsonx(context: str, settings) -> tuple[str, str] | None:
+        """Attempt a watsonx.ai call. Returns (answer, model_id) or None on any failure."""
         try:
             from ibm_watsonx_ai import Credentials
             from ibm_watsonx_ai.foundation_models import ModelInference
@@ -351,7 +379,6 @@ class CopilotService:
                 url=settings.watsonx_url,
                 api_key=settings.watsonx_api_key,
             )
-
             model = ModelInference(
                 model_id="ibm/granite-13b-instruct-v2",
                 credentials=credentials,
@@ -362,28 +389,42 @@ class CopilotService:
                     GenParams.REPETITION_PENALTY: 1.1,
                 },
             )
-
-            prompt = (
-                "You are MissionReady Copilot, an AI assistant for military aviation maintenance operations. "
-                "You ONLY explain information from the provided backend evidence. "
-                "You NEVER invent sensor readings, predictions, or maintenance decisions.\n\n"
-                + context
-            )
-
+            prompt = CopilotService._SYSTEM_PROMPT + "\n\n" + context
             response = model.generate_text(prompt=prompt)
+            logger.info("copilot_llm_used", provider="watsonx", model="ibm/granite-13b-instruct-v2")
             return response, "ibm/granite-13b-instruct-v2"
 
         except ImportError:
-            logger.warning("watsonx_sdk_not_installed", msg="ibm-watsonx-ai not installed; returning structured evidence")
-            return (
-                "[Copilot: ibm-watsonx-ai SDK not installed — returning structured evidence only.]\n\n"
-                + context,
-                None,
-            )
+            logger.warning("watsonx_sdk_not_installed", msg="ibm-watsonx-ai not installed; trying Groq fallback")
+            return None
         except Exception as exc:
-            logger.error("watsonx_call_failed", exc_info=exc)
-            return (
-                f"[Copilot: LLM call failed ({type(exc).__name__}) — returning structured evidence only.]\n\n"
-                + context,
-                None,
+            logger.warning("watsonx_call_failed", exc_type=type(exc).__name__, msg="Trying Groq fallback")
+            return None
+
+    @staticmethod
+    def _try_groq(context: str, settings) -> tuple[str, str] | None:
+        """Attempt a Groq call. Returns (answer, model_id) or None on any failure."""
+        try:
+            from groq import Groq
+
+            client = Groq(api_key=settings.groq_api_key)
+            completion = client.chat.completions.create(
+                model=settings.groq_model,
+                messages=[
+                    {"role": "system", "content": CopilotService._SYSTEM_PROMPT},
+                    {"role": "user", "content": context},
+                ],
+                max_tokens=512,
+                temperature=0.1,
             )
+            answer = completion.choices[0].message.content or ""
+            model_id = f"groq/{settings.groq_model}"
+            logger.info("copilot_llm_used", provider="groq", model=settings.groq_model)
+            return answer, model_id
+
+        except ImportError:
+            logger.warning("groq_sdk_not_installed", msg="groq package not installed")
+            return None
+        except Exception as exc:
+            logger.warning("groq_call_failed", exc_type=type(exc).__name__, msg="Groq request failed")
+            return None

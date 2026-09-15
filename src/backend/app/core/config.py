@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     watsonx_project_id: str | None = None
     watsonx_url: str = "https://us-south.ml.cloud.ibm.com"
 
+    # Groq (optional — fallback LLM if watsonx.ai is unavailable)
+    groq_api_key: str | None = None
+    groq_model: str = "llama3-8b-8192"
+
     # Logging
     log_level: str = "INFO"
 
