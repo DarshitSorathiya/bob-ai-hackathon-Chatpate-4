@@ -16,6 +16,7 @@ from app.services.auth_service import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
     GoogleAuthenticationError,
+    GoogleNotConfiguredError,
 )
 
 
@@ -54,6 +55,11 @@ def login(request: LoginRequest, db: DbSession) -> AuthResponse:
 def google_login(request: GoogleLoginRequest, db: DbSession) -> AuthResponse:
     try:
         user = auth_service.authenticate_google(db, request.id_token)
+    except GoogleNotConfiguredError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google OAuth is not configured on this server. Set GOOGLE_CLIENT_ID in the environment.",
+        ) from error
     except GoogleAuthenticationError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
