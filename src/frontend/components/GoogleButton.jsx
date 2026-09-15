@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { loginWithGoogle, saveSession } from '../lib/api';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 /**
  * GoogleButton — renders a real Google Sign-In button using the Google Identity
