@@ -1,0 +1,79 @@
+services:
+  # ─── PostgreSQL database ───────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: missionready
+      POSTGRES_PASSWORD: missionready_dev_password
+      POSTGRES_DB: missionready
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U missionready -d missionready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── Alembic migrations (one-shot; exits after upgrading schema) ───────────
+  migrate:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    command: alembic upgrade head
+    env_file:
+      - ./src/.env
+    environment:
+      # Override the DATABASE_URL host so it resolves inside the Docker network.
+      # The value in src/.env uses localhost (for local dev without Docker).
+      DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # ─── FastAPI backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./src/.env
+    environment:
+      # Override the DATABASE_URL host (same reason as the migrate service).
+      DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
+      # Allow requests from the host browser and the frontend container.
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:5173,http://frontend:3000,https://bob-ai-hackathon-chatpate-4-3qeuovfjw.vercel.app"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: >
+      uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+
+  # ─── Next.js frontend ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+      args:
+        # The browser calls this URL, so it must be reachable from the host.
+        NEXT_PUBLIC_API_URL: "http://localhost:8000/api/v1,https://bob-ai-hackathon-chatpate-4.onrender.com/api/v1"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "406523653013-f95ierfa3drkakn41oipsenr5no3l00c.apps.googleusercontent.com"   # set in src/.env or override here
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
