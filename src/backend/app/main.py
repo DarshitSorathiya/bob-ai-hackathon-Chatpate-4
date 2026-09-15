@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -49,10 +50,14 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # --- Middleware (order matters: outermost wraps all inner) ---
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(SlowAPIMiddleware)
+# When cors_origins is the wildcard "*" we must disable allow_credentials —
+# browsers reject "Access-Control-Allow-Origin: *" combined with credentials.
+# For any explicit origin list, credentials are allowed normally.
+_wildcard_cors = settings.cors_origin_list == ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
+    allow_credentials=not _wildcard_cors,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Request-ID"],
@@ -73,10 +78,41 @@ async def security_headers(request: Request, call_next):
     return response
 
 
+# --- Validation error handler ---
+# FastAPI raises RequestValidationError (HTTP 422) before the route runs.
+# Without this handler the CORS middleware never gets a chance to attach
+# Access-Control-Allow-Origin, so browsers see a CORS error instead of the
+# real validation message.
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    request_id = request.headers.get("X-Request-ID", "unknown")
+    origin = request.headers.get("origin", "")
+    headers = {}
+    if origin in settings.cors_origin_list or "*" in settings.cors_origin_list:
+        headers["Access-Control-Allow-Origin"] = origin or "*"
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=make_error(
+            code="VALIDATION_ERROR",
+            message=str(exc.errors()),
+            request_id=request_id,
+        ),
+        headers=headers,
+    )
+
+
 # --- Global exception handler for unhandled errors ---
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     request_id = request.headers.get("X-Request-ID", "unknown")
+    origin = request.headers.get("origin", "")
+    headers = {}
+    if origin in settings.cors_origin_list or "*" in settings.cors_origin_list:
+        headers["Access-Control-Allow-Origin"] = origin or "*"
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
     logger.error("unhandled_exception", exc_info=exc, path=request.url.path)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -85,6 +121,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
             message="An unexpected error occurred.",
             request_id=request_id,
         ),
+        headers=headers,
     )
 
 

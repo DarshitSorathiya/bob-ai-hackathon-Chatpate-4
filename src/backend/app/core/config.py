@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
 
     # CORS — comma-separated list of allowed origins.
-    # No default — must be set explicitly in the environment.
-    cors_origins: str = "*"
+    # Set CORS_ORIGINS in the environment. Examples:
+    #   Local dev:   http://localhost:3000,http://localhost:5173
+    #   Production:  https://bob-ai-hackathon-chatpate-4-3qeuovfjw.vercel.app
+    cors_origins: str = "https://bob-ai-hackathon-chatpate-4-3qeuovfjw.vercel.app,http://localhost:3000,http://localhost:5173"
 
     # Google OAuth (optional)
     google_client_id: str | None = None
