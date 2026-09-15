@@ -4,9 +4,10 @@
 
 [![Track: AI](https://img.shields.io/badge/Track-AI-blue.svg)](https://github.com/)
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
-[![Frontend: React](https://img.shields.io/badge/Frontend-React-61DAFB.svg)](https://reactjs.org/)
+[![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/)
 [![AI Engine: IBM Bob](https://img.shields.io/badge/AI--Engine-IBM%20Bob-052FAD.svg)](https://www.ibm.com/)
+[![Docker](https://img.shields.io/badge/Docker-darshitsorathiya%2Fmissionready-2496ED.svg)](https://hub.docker.com/u/darshitsorathiya)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
@@ -406,139 +407,193 @@ The project relies on production-grade Python and JavaScript libraries listed be
 
 ## 📋 Prerequisites
 
-Ensure your development environment meets the following software requirements prior to installation:
+### Docker setup (recommended — no Python or Node required)
+* **Docker** v24+ — [install guide](https://docs.docker.com/get-docker/)
+* **Docker Compose** v2.20+ (bundled with Docker Desktop; or `docker compose version`)
 
-* **Python:** Version `3.10` or `3.11` installed (`python --version`)
-* **Node.js:** Version `18.0.0` or higher (`node -v`)
-* **Package Manager:** `npm` (v9+) or `pnpm` / `yarn`
-* **Database:** `PostgreSQL 14+` running locally or accessible via network URI (or Docker)
-* **Docker (Optional):** Docker Desktop v24+ for containerized setup
-* **IBM Bob API Access:** API Credentials / Key for IBM Bob services
+### Local / manual setup
+* **Python** 3.12+ (`python --version`)
+* **Node.js** 20+ (`node -v`)
+* **PostgreSQL** 15+
+* **IBM watsonx.ai** credentials (API key + Project ID) for the AI copilot
 
 ---
 
 ## 🔐 Environment Variables
 
-Create a `.env` configuration file inside the root / backend directory by copying `.env.example`:
+There is **one shared file** — `src/.env` — that both the backend and the frontend read. You never need a separate `src/frontend/.env.local`.
 
 ```bash
-cp src/.env.example .env
+cp src/.env.example src/.env
 ```
 
-### Required Configuration Schema
+Open `src/.env` and fill in the required values:
 
-```env
-# =============================================================================
-# APPLICATION CONFIGURATION
-# =============================================================================
-APP_ENV=development
-APP_PORT=8000
-SECRET_KEY=your_super_secret_app_key_here
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string (psycopg v3 prefix) |
+| `JWT_SECRET_KEY` | ✅ | ≥ 32 random bytes — generate below |
+| `WATSONX_API_KEY` | ✅ | IBM Cloud API key |
+| `WATSONX_PROJECT_ID` | ✅ | IBM watsonx.ai project ID |
+| `WATSONX_URL` | ✅ | `https://us-south.ml.cloud.ibm.com` |
+| `NEXT_PUBLIC_API_URL` | ✅ | URL the **browser** uses to reach the backend |
+| `GROQ_API_KEY` | ⚠️ optional | Fallback LLM if watsonx.ai is unavailable |
+| `GOOGLE_CLIENT_ID` | ⚠️ optional | Enables Google Sign-In |
+| `SLACK_WEBHOOK_URL` | ⚠️ optional | Slack notifications |
 
-# =============================================================================
-# IBM BOB / WATSONX INTEGRATION
-# =============================================================================
-WATSONX_API_KEY=your_ibm_watsonx_api_key_here
-WATSONX_PROJECT_ID=your_ibm_project_id_here
-WATSONX_URL=https://us-south.ml.cloud.ibm.com
-
-# =============================================================================
-# DATABASE CONFIGURATION (POSTGRESQL)
-# =============================================================================
-DATABASE_URL=postgresql://postgres:postgres_password@localhost:5432/missionready_db
-
-# =============================================================================
-# NOTIFICATION INTEGRATIONS (OPTIONAL)
-# =============================================================================
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+Generate a secure `JWT_SECRET_KEY`:
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-> ⚠️ **Security Warning:** Never commit `.env` files containing real API keys, passwords, or secrets to Git version control.
+> ⚠️ **Never commit `src/.env`** — it is listed in `.gitignore`.
 
 ---
 
-## 💻 Installation & Setup
+## 🚀 Setup & Running
 
-Follow these exact step-by-step terminal commands to set up the project locally:
+### ✅ Option 1 — Docker Hub (fastest, no clone needed)
 
-### Step 1: Clone the Repository
+Pre-built images are published to Docker Hub under [`darshitsorathiya/missionready-backend`](https://hub.docker.com/r/darshitsorathiya/missionready-backend) and [`darshitsorathiya/missionready-frontend`](https://hub.docker.com/r/darshitsorathiya/missionready-frontend).
+
+**Step 1 — Get the compose file and env template**
+```bash
+# Option A: clone the repo
+git clone https://github.com/DarshitSorathiya/bob-ai-hackathon-Chatpate-4.git
+cd bob-ai-hackathon-Chatpate-4
+
+# Option B: download just the two files you need
+curl -O https://raw.githubusercontent.com/DarshitSorathiya/bob-ai-hackathon-Chatpate-4/main/docker-compose.prod.yml
+mkdir -p src
+curl -o src/.env https://raw.githubusercontent.com/DarshitSorathiya/bob-ai-hackathon-Chatpate-4/main/src/.env.example
+```
+
+**Step 2 — Configure `src/.env`**
+```bash
+# If you cloned:
+cp src/.env.example src/.env
+nano src/.env   # fill in JWT_SECRET_KEY, WATSONX_API_KEY, etc.
+```
+
+**Step 3 — Pull images and start**
+```bash
+DOCKERHUB_USERNAME=darshitsorathiya docker compose -f docker-compose.prod.yml up -d
+```
+
+**Step 4 — Open the app**
+| Service | URL |
+|---|---|
+| Frontend dashboard | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| API docs (Swagger) | http://localhost:8000/docs |
+
+---
+
+### 🛠️ Option 2 — Build from source (Docker)
+
+Use this when you have made local code changes and want to build fresh images.
+
+**Step 1 — Clone**
 ```bash
 git clone https://github.com/DarshitSorathiya/bob-ai-hackathon-Chatpate-4.git
 cd bob-ai-hackathon-Chatpate-4
 ```
 
-### Step 2: Set Up Backend Virtual Environment
+**Step 2 — Configure**
 ```bash
-# Create Python virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# On macOS / Linux:
-# source venv/bin/activate
-
-# Upgrade pip
-python -m pip install --upgrade pip
-
-# Install backend dependencies
-pip install fastapi uvicorn pandas scikit-learn numpy psycopg2-binary sqlalchemy pydantic python-dotenv
+cp src/.env.example src/.env
+nano src/.env   # fill in required values
 ```
 
-### Step 3: Set Up Frontend Dependencies
+**Step 3 — Build and run**
 ```bash
-# Navigate to source / frontend directory (if separated)
-# npm install inside frontend workspace
-npm install
+docker compose up --build -d
 ```
 
-### Step 4: Configure Environment Variables
-```bash
-# Copy template env file
-cp src/.env.example .env
-```
+Migrations run automatically before the backend starts.
 
-### Step 5: Database Setup & Seeding
-```bash
-# Ensure PostgreSQL service is running and database 'missionready_db' exists
-# Run migration & seed scripts (if available)
-python -c "from src.backend.app.database import init_db; init_db()"
-```
+**Step 4 — Open the app**
+| Service | URL |
+|---|---|
+| Frontend dashboard | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| API docs (Swagger) | http://localhost:8000/docs |
 
 ---
 
-## 🚀 How to Run
+### 💻 Option 3 — Run without Docker (manual)
 
-Running the full application requires starting the FastAPI backend and React frontend services.
+Use this for active development with hot-reload on both services.
 
-### Option A: Running via Dual Terminals
-
-#### Terminal 1: Backend Service (FastAPI)
+**Step 1 — Clone and configure**
 ```bash
-# Activate virtual environment if not already activated
-# Windows: .\venv\Scripts\Activate.ps1  |  Mac/Linux: source venv/bin/activate
-
-# Run FastAPI backend with hot-reload
-uvicorn src.backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+git clone https://github.com/DarshitSorathiya/bob-ai-hackathon-Chatpate-4.git
+cd bob-ai-hackathon-Chatpate-4
+cp src/.env.example src/.env
+nano src/.env   # fill in required values (use localhost for DATABASE_URL)
 ```
-* Backend API base URL: `http://localhost:8000`
-* Interactive API Documentation (Swagger): `http://localhost:8000/docs`
 
-#### Terminal 2: Frontend Dashboard (React)
+**Step 2 — Backend**
 ```bash
-# Start React development server
+cd bob-ai-hackathon-Chatpate-4
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+pip install -r src/backend/requirements.txt
+
+cd src/backend
+alembic upgrade head               # run DB migrations
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+**Step 3 — Frontend** (new terminal)
+```bash
+cd src/frontend
+npm install
 npm run dev
 ```
-* Frontend Dashboard URL: `http://localhost:3000` (or `http://localhost:5173`)
 
 ---
 
-### Option B: Running via Docker Compose
-If Docker Desktop is installed, launch the entire application stack (PostgreSQL + FastAPI + React) using Docker Compose:
+## 🐳 Docker Reference
 
+### Common commands
 ```bash
-docker-compose up --build
+# View running containers
+docker compose ps
+
+# Stream logs for all services
+docker compose logs -f
+
+# Stream logs for one service
+docker compose logs -f backend
+
+# Stop (keep database volume)
+docker compose down
+
+# Stop and wipe database
+docker compose down -v
+
+# Rebuild after code changes
+docker compose up --build -d
+
+# Update to latest Hub images
+DOCKERHUB_USERNAME=darshitsorathiya \
+  docker compose -f docker-compose.prod.yml pull && \
+  docker compose -f docker-compose.prod.yml up -d
 ```
+
+### Pin a specific release
+```bash
+IMAGE_TAG=v1.2.0 DOCKERHUB_USERNAME=darshitsorathiya \
+  docker compose -f docker-compose.prod.yml up -d
+```
+
+### Run on another PC
+1. Install Docker on the target machine
+2. Copy `docker-compose.prod.yml` and `src/.env` to the machine
+3. Set `NEXT_PUBLIC_API_URL=http://<machine-ip>:8000/api/v1` in `src/.env`
+4. Run `DOCKERHUB_USERNAME=darshitsorathiya docker compose -f docker-compose.prod.yml up -d`
 
 ---
 
@@ -546,27 +601,171 @@ docker-compose up --build
 
 ```text
 bob-ai-hackathon-Chatpate-4/
-├── .github/                      # GitHub workflows and issue templates
-├── .gitignore                    # Global git ignore rules
-├── CONTRIBUTING.md               # Contribution guidelines for developer setup
-├── README.md                     # Main hackathon submission documentation
-├── submission.yaml               # Structured hackathon submission metadata
-├── demo/                         # Demo assets and submission links
-│   ├── demo-video-link.txt       # Link to recorded demo video (YouTube/Loom)
-│   ├── live-demo-url.txt         # Link to live deployed application
-│   └── screenshots/              # Application UI screenshots
-│       └── README.md             # Screenshot submission guide
-├── docs/                         # Detailed architecture and design documentation
-│   ├── architecture.md           # System architecture diagrams and component specs
-│   ├── problem-statement.md      # In-depth problem analysis and background
-│   ├── setup-guide.md            # Step-by-step developer environment setup
-│   ├── solution-overview.md       # High-level technical solution description
-│   └── template-guide.md         # Documentation layout guidelines
-├── presentation/                 # Presentation deck artifacts
-│   └── README.md                 # Slide deck submission instructions
-└── src/                          # Application Source Code workspace
-    ├── .env.example              # Environment variables template file
-    └── README.md                 # Source code layout guidelines
+│
+├── docker-compose.yml            # Local dev — builds images from source
+├── docker-compose.prod.yml       # Production — pulls from Docker Hub
+├── README.md
+├── CONTRIBUTING.md
+├── AGENTS.md
+├── submission.yaml
+│
+├── .github/
+│   ├── workflows/
+│   │   ├── validate.yml          # Submission completeness check
+│   │   └── docker-publish.yml    # Build & push to Docker Hub (CI)
+│   └── ISSUE_TEMPLATE/
+│
+├── docs/
+│   ├── IMPLEMENTATION_PLAN.md
+│   ├── architecture.md / ARCHITECTURE.md
+│   ├── problem-statement.md
+│   ├── solution-overview.md
+│   ├── setup-guide.md
+│   ├── API.md
+│   ├── DATA_MODEL.md
+│   ├── BOB_USAGE.md
+│   ├── SECURITY.md
+│   ├── KPIS.md
+│   ├── PERSONAS.md
+│   └── RESEARCH.md
+│
+├── demo/
+│   ├── demo-video-link.txt
+│   ├── live-demo-url.txt
+│   └── screenshots/
+│
+├── presentation/
+│
+└── src/
+    ├── .env.example              # ← template (copy to src/.env)
+    ├── .env                      # ← your secrets (git-ignored)
+    │
+    ├── backend/
+    │   ├── Dockerfile
+    │   ├── .dockerignore
+    │   ├── requirements.txt
+    │   ├── pyproject.toml        # ruff + pytest config
+    │   ├── alembic.ini
+    │   │
+    │   ├── migrations/
+    │   │   ├── env.py
+    │   │   ├── script.py.mako
+    │   │   └── versions/
+    │   │
+    │   ├── app/
+    │   │   ├── main.py
+    │   │   ├── api/
+    │   │   │   ├── deps.py       # DbSession, CurrentUser, require_roles
+    │   │   │   └── routes/
+    │   │   │       ├── auth.py
+    │   │   │       ├── assets.py
+    │   │   │       ├── alerts.py
+    │   │   │       ├── maintenance.py
+    │   │   │       ├── missions.py
+    │   │   │       ├── readiness.py
+    │   │   │       ├── copilot.py
+    │   │   │       ├── models.py
+    │   │   │       ├── data_quality.py
+    │   │   │       └── health.py
+    │   │   ├── core/
+    │   │   │   ├── config.py     # pydantic-settings, reads src/.env
+    │   │   │   ├── database.py
+    │   │   │   ├── security.py
+    │   │   │   ├── middleware.py
+    │   │   │   ├── responses.py  # make_response / make_error envelope
+    │   │   │   ├── roles.py      # OPERATOR, MAINTAINER, ADMIN constants
+    │   │   │   ├── audit.py
+    │   │   │   └── logging.py
+    │   │   ├── models/           # SQLAlchemy ORM
+    │   │   │   ├── user.py
+    │   │   │   ├── fleet.py
+    │   │   │   ├── operations.py
+    │   │   │   └── telemetry.py
+    │   │   ├── repositories/
+    │   │   │   ├── user_repository.py
+    │   │   │   ├── fleet_repository.py
+    │   │   │   └── operations_repository.py
+    │   │   ├── schemas/          # Pydantic request/response
+    │   │   │   ├── auth.py
+    │   │   │   ├── fleet.py
+    │   │   │   └── operations.py
+    │   │   ├── services/
+    │   │   │   ├── auth_service.py
+    │   │   │   ├── copilot_service.py
+    │   │   │   └── readiness_service.py
+    │   │   └── ml/
+    │   │       ├── ingestion/    # C-MAPSS & IMS loaders + provenance
+    │   │       ├── features/     # Cleaning, rolling stats, labels, split
+    │   │       ├── models/       # Inference, registry, leakage guard
+    │   │       ├── training/     # RUL, anomaly, failure trainers
+    │   │       ├── validation/   # Schema checks
+    │   │       ├── readiness/    # Readiness engine + models
+    │   │       ├── maintenance/  # Prioritizer
+    │   │       ├── mission/      # Mission engine
+    │   │       ├── simulator/    # Synthetic data generation
+    │   │       └── evaluation/
+    │   │
+    │   ├── scripts/
+    │   │   ├── download_datasets.py
+    │   │   ├── preprocess_cmapss.py
+    │   │   ├── preprocess_ims.py
+    │   │   └── seed_demo_data.py
+    │   │
+    │   ├── data/
+    │   │   ├── raw/              # C-MAPSS & IMS raw files (git-ignored)
+    │   │   ├── processed/        # Parquet outputs + .provenance.json
+    │   │   ├── synthetic/        # Simulator output
+    │   │   └── simulator/profiles/  # YAML simulation configs
+    │   │
+    │   └── tests/
+    │       ├── conftest.py
+    │       ├── test_health.py
+    │       └── ml/
+    │           ├── test_cmapss.py
+    │           ├── test_features.py
+    │           ├── test_simulator.py
+    │           ├── test_readiness_engine.py
+    │           └── test_phase6_ml.py
+    │
+    └── frontend/                 # Next.js 14 — ACTIVE frontend
+        ├── Dockerfile
+        ├── .dockerignore
+        ├── next.config.js        # loads src/.env → injects NEXT_PUBLIC_*
+        ├── package.json
+        ├── tailwind.config.js
+        ├── middleware.js
+        │
+        ├── app/                  # App Router pages
+        │   ├── layout.jsx
+        │   ├── page.jsx          # Landing page
+        │   ├── login/page.jsx
+        │   ├── signup/page.jsx
+        │   ├── dashboard/page.jsx
+        │   ├── assets/page.jsx
+        │   ├── assets/[assetId]/page.jsx
+        │   ├── alerts/page.jsx
+        │   ├── maintenance/page.jsx
+        │   ├── missions/page.jsx
+        │   ├── missions/[missionId]/page.jsx
+        │   ├── models/page.jsx
+        │   ├── copilot/page.jsx
+        │   └── data-quality/page.jsx
+        │
+        ├── components/
+        │   ├── NavBar.jsx
+        │   ├── Button.jsx
+        │   ├── Input.jsx
+        │   ├── GoogleButton.jsx
+        │   ├── AuthLayout.jsx
+        │   ├── HumsSensorCanvas.jsx
+        │   └── LandingRadarCanvas.jsx
+        │
+        ├── lib/
+        │   └── api.js            # fetch wrapper, auth detection, token mgmt
+        │
+        └── public/
+            ├── styles.css
+            └── images/
 ```
 
 ---

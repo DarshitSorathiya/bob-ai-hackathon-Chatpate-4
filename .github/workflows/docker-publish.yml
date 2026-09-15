@@ -99,10 +99,11 @@ jobs:
           push: true
           tags:   ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # NEXT_PUBLIC_* vars are baked in at build time — set them here.
-          # Override NEXT_PUBLIC_API_URL if your prod API lives elsewhere.
+          # NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
+          # NEXT_PUBLIC_API_URL points to the Render backend.
+          # Override via GitHub repository variable NEXT_PUBLIC_API_URL if needed.
           build-args: |
-            NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://bob-ai-hackathon-chatpate-4.onrender.com/api/v1' }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           cache-from: type=gha
           cache-to:   type=gha,mode=max
