@@ -1,0 +1,20 @@
+# Dependencies (installed fresh inside the image)
+node_modules/
+
+# Next.js build output (rebuilt inside the image)
+.next/
+out/
+
+# Source maps & coverage
+coverage/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Secrets (never bake into the image)
+.env.local
+.env*.local
+.env

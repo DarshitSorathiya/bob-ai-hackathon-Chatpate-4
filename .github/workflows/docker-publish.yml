@@ -1,0 +1,108 @@
+name: 🐳 Build & Push to Docker Hub
+
+on:
+  push:
+    branches:
+      - main          # publish on every merge to main
+    tags:
+      - "v*.*.*"      # also publish on version tags  (e.g. v1.2.3)
+  workflow_dispatch:  # allow manual trigger from the GitHub UI
+
+env:
+  # Change DOCKERHUB_USERNAME below to your Docker Hub handle, or set it as a
+  # repository variable (Settings → Variables → Actions → New repository variable).
+  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+  BACKEND_IMAGE:  ${{ vars.DOCKERHUB_USERNAME }}/missionready-backend
+  FRONTEND_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/missionready-frontend
+
+jobs:
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  build-backend:
+    name: Build & Push backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Build-kit cache speeds up repeated builds significantly
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Derive image tags from the git ref:
+      #   push to main  → :latest + :sha-<short>
+      #   push of v1.2.3 tag → :1.2.3 + :latest + :sha-<short>
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/backend
+          file:    ./src/backend/Dockerfile
+          push: true
+          tags:   ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  build-frontend:
+    name: Build & Push frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/frontend
+          file:    ./src/frontend/Dockerfile
+          push: true
+          tags:   ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # NEXT_PUBLIC_* vars are baked in at build time — set them here.
+          # Override NEXT_PUBLIC_API_URL if your prod API lives elsewhere.
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
