@@ -162,7 +162,11 @@ export default function SignupPage() {
         </div>
       </div>
 
-      <GoogleButton label="Continue with Google" />
+      <GoogleButton
+        label="Continue with Google"
+        onSuccess={() => router.push('/dashboard')}
+        onError={(msg) => setAuthError(msg)}
+      />
 
       <div className="mt-5 text-center text-xs text-slate-400 font-sans">
         Already have an account?{' '}

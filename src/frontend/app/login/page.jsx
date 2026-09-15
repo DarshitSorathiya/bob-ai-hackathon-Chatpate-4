@@ -146,7 +146,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <GoogleButton label="Continue with Google" />
+      <GoogleButton
+        label="Continue with Google"
+        onSuccess={() => router.push('/dashboard')}
+        onError={(msg) => setAuthError(msg)}
+      />
 
       <div className="mt-6 text-center text-xs text-slate-400 font-sans">
         Don&apos;t have an account?{' '}

@@ -21,6 +21,12 @@ class InvalidCredentialsError(Exception):
 
 
 class GoogleAuthenticationError(Exception):
+    """Google token verification failed (bad/expired token)."""
+    pass
+
+
+class GoogleNotConfiguredError(Exception):
+    """GOOGLE_CLIENT_ID is not set — Google OAuth is disabled on this server."""
     pass
 
 
@@ -57,7 +63,7 @@ class AuthService:
     def authenticate_google(self, db: Session, id_token_value: str) -> User:
         settings = get_settings()
         if not settings.google_client_id:
-            raise GoogleAuthenticationError
+            raise GoogleNotConfiguredError
 
         try:
             claims = id_token.verify_oauth2_token(
