@@ -32,8 +32,11 @@ if (fs.existsSync(sharedEnvPath)) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Produce a self-contained output for the Docker runner stage.
-  output: 'standalone',
+  // 'standalone' is required for Docker (copies minimal server files into
+  // .next/standalone). It must NOT be set on Vercel — Vercel manages its own
+  // output format and errors if standalone is forced.
+  // Set NEXT_OUTPUT=standalone in your Docker build env to enable it.
+  ...(process.env.NEXT_OUTPUT === 'standalone' && { output: 'standalone' }),
 }
 
 module.exports = nextConfig

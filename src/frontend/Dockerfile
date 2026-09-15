@@ -20,6 +20,10 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
+# Enable Next.js standalone output — required for the slim runner stage.
+# Vercel must NOT have this set (it manages its own output format).
+ENV NEXT_OUTPUT=standalone
+
 RUN npm run build
 
 # ── Stage 3: production runtime ───────────────────────────────────────────────
