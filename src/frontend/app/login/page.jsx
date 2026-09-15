@@ -2,18 +2,18 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import GoogleButton from '../../components/GoogleButton';
+import { loginUser, saveSession, requestPasswordReset } from '../../lib/api';
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const router = useRouter();
 
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,49 +33,51 @@ export default function LoginPage() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email address is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Enter a valid operator email address';
+      newErrors.email = 'Enter a valid email address';
     }
-
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsLoading(true);
+    setAuthError('');
 
-    setTimeout(() => {
+    try {
+      const response = await loginUser(formData);
+      saveSession(response);
+      router.push('/dashboard');
+    } catch (error) {
+      setAuthError(error.message || 'Authentication failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      if (formData.email.includes('error')) {
-        setAuthError('Unauthorized clearance level or invalid credentials.');
-      } else {
-        alert(`Authentication Successful. Welcome Operator ${formData.email}!`);
-      }
-    }, 1200);
+    }
   };
 
-  const handleForgotSubmit = (e) => {
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     if (!forgotEmail || !/\S+@\S+\.\S+/.test(forgotEmail)) {
-      alert('Please enter a valid operator email address.');
+      alert('Please enter a valid email address.');
       return;
     }
-    setForgotSuccess(true);
+    try {
+      await requestPasswordReset(forgotEmail);
+      setForgotSuccess(true);
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
-    <AuthLayout
-      title="Sign In"
-      subtitle="Predict the failure. Protect the mission."
-    >
+    <AuthLayout title="Sign In" subtitle="Predict the failure. Protect the mission.">
       {authError && (
         <div className="mb-4 p-3 rounded-lg bg-red-950/70 border border-red-800/80 text-red-200 text-xs flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
@@ -144,10 +146,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Google Sign-in */}
       <GoogleButton label="Continue with Google" />
 
-      {/* Sign up link */}
       <div className="mt-6 text-center text-xs text-slate-400 font-sans">
         Don&apos;t have an account?{' '}
         <Link
@@ -161,7 +161,7 @@ export default function LoginPage() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0d121f] border border-slate-800 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl relative">
+          <div className="bg-[#0d121f] border border-slate-800 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl">
             <h2 className="text-lg font-bold text-slate-100 font-sans">Reset Password</h2>
             {forgotSuccess ? (
               <div className="space-y-3 font-mono text-xs">
@@ -175,7 +175,7 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleForgotSubmit} className="space-y-3">
                 <p className="text-xs text-slate-400">
-                  Enter your registered email address to receive a password reset link.
+                  Enter your registered email to receive a reset link.
                 </p>
                 <Input
                   id="forgot-email-input"
@@ -192,9 +192,7 @@ export default function LoginPage() {
                   <Button type="button" variant="secondary" onClick={() => setShowForgotModal(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    Send Reset Link
-                  </Button>
+                  <Button type="submit">Send Reset Link</Button>
                 </div>
               </form>
             )}

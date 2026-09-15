@@ -1,0 +1,15 @@
+# =============================================================================
+# MissionReady AI — ML Dependencies (installed separately from runtime)
+# =============================================================================
+# Run from src/backend/:  pip install -r requirements-ml.txt
+# These are NOT needed for the web server to start.
+# Install before Phase 6 (ML baseline).
+
+numpy==2.2.0
+pandas==2.2.3
+scipy==1.14.1
+scikit-learn==1.6.0
+xgboost==2.1.2
+lightgbm==4.5.0
+pyarrow==18.1.0
+joblib==1.4.2

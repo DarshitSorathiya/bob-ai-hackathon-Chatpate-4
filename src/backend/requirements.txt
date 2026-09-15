@@ -1,0 +1,56 @@
+# =============================================================================
+# MissionReady AI — Backend Runtime Dependencies
+# =============================================================================
+# Pin all versions for reproducibility.
+# Run from src/backend/:  pip install -r requirements.txt
+
+# --- Web framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+starlette==0.41.3
+
+# --- Database ---
+SQLAlchemy==2.0.36
+psycopg[binary]==3.2.3
+alembic==1.14.0
+
+# --- Validation & settings ---
+pydantic==2.13.5
+pydantic-settings==2.7.1
+pydantic-core==2.46.5
+email-validator==2.2.0
+
+# --- Auth ---
+PyJWT==2.10.1
+pwdlib[argon2]==0.2.1
+google-auth==2.37.0
+
+# --- Rate limiting ---
+slowapi==0.1.9
+limits==3.14.1
+
+# --- Structured logging ---
+structlog==25.3.0
+
+# --- HTTP client (used in tests) ---
+httpx==0.28.1
+
+# --- Testing ---
+pytest==8.3.4
+pytest-asyncio==0.25.3
+pytest-cov==6.1.0
+
+# --- Utilities ---
+python-dotenv==1.2.3
+python-multipart==0.0.20
+anyio==4.15.1
+
+# --- ML ---
+numpy==2.2.0
+pandas==2.2.3
+scipy==1.14.1
+scikit-learn==1.6.0
+xgboost==2.1.2
+lightgbm==4.5.0
+pyarrow==18.1.0
+joblib==1.4.2

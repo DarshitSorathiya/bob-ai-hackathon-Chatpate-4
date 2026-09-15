@@ -1,0 +1,42 @@
+services:
+  # ─── PostgreSQL database ───────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: missionready
+      POSTGRES_PASSWORD: missionready_dev_password
+      POSTGRES_DB: missionready
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U missionready -d missionready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── FastAPI backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./src/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src/backend:/app
+    command: >
+      uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+
+volumes:
+  postgres_data:

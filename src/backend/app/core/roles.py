@@ -1,0 +1,5 @@
+OPERATOR = "operator"
+MAINTAINER = "maintainer"
+ADMIN = "admin"
+
+ALL_ROLES = (OPERATOR, MAINTAINER, ADMIN)
