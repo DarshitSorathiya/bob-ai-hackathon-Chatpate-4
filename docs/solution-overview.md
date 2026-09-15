@@ -2,40 +2,38 @@
 
 ## What We Built
 
-[Describe your solution in plain language. Avoid jargon — write as if explaining to a smart colleague unfamiliar with your tech stack.]
+We built **MissionReady Copilot**, an AI-powered decision-support system that helps maintenance and mission teams understand whether aircraft and other mission-critical assets are ready for upcoming missions.
+
+Instead of relying only on fixed maintenance schedules, the system brings together **sensor data, asset information, maintenance history, mission requirements, and predictive analysis**. It identifies assets that may require attention, explains potential readiness issues, predicts component failure risks, and helps prioritise maintenance actions.
+
+The goal is simple: **identify problems before they become mission-impacting failures and help teams decide what needs attention first.**
 
 ## How It Works
 
-[Explain the core mechanism step by step. A numbered list or simple flow works well here.]
-
-1. [Step 1: e.g., "User connects their GitHub repository via OAuth"]
-2. [Step 2: e.g., "The system ingests pipeline logs and feeds them to watsonx.ai"]
-3. [Step 3: e.g., "An anomaly score is computed and displayed on the dashboard"]
-4. [Step 4: e.g., "Alerts are sent to Slack when the score exceeds a threshold"]
+1. **Asset and sensor data is collected** along with component information, usage history, maintenance records, and mission requirements.
+2. **The backend processes the available data** using Python and Pandas to prepare it for analysis.
+3. **The readiness engine analyses asset conditions** and identifies abnormal or concerning behaviour.
+4. **Machine-learning models estimate component failure risk** using available sensor and historical information.
+5. **The system combines risk with mission requirements** to determine which assets need attention before an upcoming mission.
+6. **Maintenance priorities are generated**, helping teams understand what should be inspected or serviced first.
+7. **Results are presented through the dashboard**, including readiness status, asset health, alerts, maintenance priorities, data-quality information, and model insights.
+8. **The AI Copilot allows users to ask questions** about asset health, readiness, and maintenance and receive understandable, context-based insights.
 
 ## Architecture Diagram
 
-> See [`architecture.md`](architecture.md) for the detailed diagram.
+> See [`architecture.md`](architecture.md) for the detailed architecture.
 
-[Optionally include a simple ASCII or Mermaid diagram here for quick reference.]
-
-```
-[User] → [Frontend: React] → [API: FastAPI] → [watsonx.ai] → [Dashboard]
-                                    ↓
-                             [PostgreSQL DB]
-```
-
-## Key Design Decisions
-
-| Decision | Rationale |
-|---|---|
-| [e.g., Used watsonx.ai for anomaly detection] | [e.g., Pre-trained models reduced time-to-value vs. building from scratch] |
-| [Decision 2] | [Rationale 2] |
-| [Decision 3] | [Rationale 3] |
-
-## IBM Technologies Used
-
-[Explain specifically HOW you used each IBM technology — not just that you used it.]
-
-- **[IBM Tech 1, e.g., watsonx.ai]:** [How it was used — e.g., "Used the `ibm/granite-13b-instruct-v2` model via the Python SDK to classify anomaly types from log text."]
-- **[IBM Tech 2]:** [How it was used]
+```text
+[HUMS / Maintenance Data]
+          ↓
+[Python + Pandas Processing]
+          ↓
+[Readiness & Predictive Analysis]
+          ↓
+[FastAPI Backend]
+      ↙          ↘
+[PostgreSQL]   [AI Copilot]
+      ↓             ↓
+      └──────→ [React / Next.js]
+                    ↓
+             [MissionReady Dashboard]
