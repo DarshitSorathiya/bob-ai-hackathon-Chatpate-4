@@ -45,6 +45,9 @@ python-dotenv==1.2.3
 python-multipart==0.0.20
 anyio==4.15.1
 
+# --- AI / LLM clients (optional — copilot backends) ---
+groq==0.28.0
+
 # --- ML ---
 numpy==2.2.0
 pandas==2.2.3
