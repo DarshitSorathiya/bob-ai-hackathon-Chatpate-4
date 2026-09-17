@@ -323,9 +323,8 @@ export default function MissionDetailPage() {
   const transitions = STATUS_TRANSITIONS[mission.status] || [];
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 font-sans">
-      <NavBar title={`Missions / ${mission.mission_code}`} onBack={() => router.push('/missions')} />
-
+  return (
+    <NavBar title={`Missions / ${mission.mission_code}`} onBack={() => router.push('/missions')}>
       {showAssign && (
         <AssignAssetModal
           missionId={missionId}
@@ -334,22 +333,22 @@ export default function MissionDetailPage() {
         />
       )}
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Header */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-5">
+      <div className="space-y-6">
+        {/* Header Box */}
+        <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-6 backdrop-blur-xl shadow-xl">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-3 flex-wrap mb-1">
-                <h1 className="text-xl font-bold font-mono">{mission.mission_code}</h1>
+                <h1 className="text-2xl font-bold font-mono text-slate-100">{mission.mission_code}</h1>
                 <MissionStatusBadge status={mission.status} />
-                <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${
+                <span className={`text-xs font-mono font-bold uppercase px-3 py-1 rounded-full border ${
                   mission.priority === 'CRITICAL' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
                   mission.priority === 'HIGH'     ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                  'bg-slate-700/30 border-slate-700 text-slate-500'
+                  'bg-slate-700/30 border-slate-700 text-slate-400'
                 }`}>{mission.priority}</span>
               </div>
-              <p className="text-slate-300 text-sm">{mission.name}</p>
-              {mission.description && <p className="text-slate-500 text-xs mt-1 font-mono">{mission.description}</p>}
+              <p className="text-slate-200 text-base font-semibold">{mission.name}</p>
+              {mission.description && <p className="text-slate-400 text-xs mt-1 font-mono">{mission.description}</p>}
             </div>
             {/* Status transition buttons */}
             {transitions.length > 0 && (
@@ -359,7 +358,7 @@ export default function MissionDetailPage() {
                     key={s}
                     onClick={() => handleStatusChange(s)}
                     disabled={statusChanging}
-                    className={`px-3 py-1.5 text-xs font-mono font-bold rounded-lg border transition-colors disabled:opacity-50 ${
+                    className={`px-4 py-2 text-xs font-mono font-bold rounded-xl border transition-colors disabled:opacity-50 ${
                       s === 'CANCELLED' ? 'border-red-700/40 bg-red-950/20 text-red-400 hover:bg-red-950/40' :
                       s === 'COMPLETED' ? 'border-emerald-700/40 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-950/40' :
                       'border-blue-700/40 bg-blue-950/20 text-blue-400 hover:bg-blue-950/40'
@@ -373,43 +372,43 @@ export default function MissionDetailPage() {
           </div>
 
           {/* Details grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-800/60 text-[11px] font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-slate-800/80 text-xs font-mono bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
             <div>
-              <p className="text-slate-500 mb-0.5">Duration</p>
-              <p className="text-slate-200">{mission.duration_hours} h</p>
+              <p className="text-slate-400 mb-0.5 font-bold">Duration</p>
+              <p className="text-slate-100 font-bold">{mission.duration_hours} h</p>
             </div>
             {mission.planned_start && (
               <div>
-                <p className="text-slate-500 mb-0.5">Planned Start</p>
-                <p className="text-slate-200">{new Date(mission.planned_start).toLocaleString()}</p>
+                <p className="text-slate-400 mb-0.5 font-bold">Planned Start</p>
+                <p className="text-slate-100 font-bold">{new Date(mission.planned_start).toLocaleString()}</p>
               </div>
             )}
             {mission.planned_end && (
               <div>
-                <p className="text-slate-500 mb-0.5">Planned End</p>
-                <p className="text-slate-200">{new Date(mission.planned_end).toLocaleString()}</p>
+                <p className="text-slate-400 mb-0.5 font-bold">Planned End</p>
+                <p className="text-slate-100 font-bold">{new Date(mission.planned_end).toLocaleString()}</p>
               </div>
             )}
             {mission.location && (
               <div>
-                <p className="text-slate-500 mb-0.5">Location</p>
-                <p className="text-slate-200">{mission.location}</p>
+                <p className="text-slate-400 mb-0.5 font-bold">Location</p>
+                <p className="text-slate-100 font-bold">{mission.location}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Requirements */}
+        {/* Requirements Box */}
         {mission.requirements?.length > 0 && (
-          <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-5">
-            <p className="text-xs font-bold font-mono text-slate-400 uppercase mb-3">Capability Requirements</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-6 backdrop-blur-xl shadow-xl">
+            <p className="text-xs font-bold font-mono text-slate-300 uppercase mb-3">Capability Requirements</p>
+            <div className="flex flex-wrap gap-2.5">
               {mission.requirements.map((r) => (
-                <div key={r.id} className="flex items-center gap-1.5 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-1.5">
-                  <span className="font-mono text-xs text-slate-200 font-semibold">{r.capability}</span>
-                  <span className="text-[10px] font-mono text-slate-400">×{r.required_count}</span>
+                <div key={r.id} className="flex items-center gap-2 bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2">
+                  <span className="font-mono text-xs text-slate-100 font-bold">{r.capability}</span>
+                  <span className="text-xs font-mono text-slate-400 font-bold">×{r.required_count}</span>
                   {r.is_critical && (
-                    <span className="text-[9px] font-mono bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded">CRITICAL</span>
+                    <span className="text-[10px] font-mono bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold">CRITICAL</span>
                   )}
                 </div>
               ))}
@@ -417,33 +416,33 @@ export default function MissionDetailPage() {
           </div>
         )}
 
-        {/* Readiness panel */}
+        {/* Readiness Panel Box */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold font-mono text-slate-400 uppercase">Readiness Evaluation</p>
+            <p className="text-xs font-bold font-mono text-slate-300 uppercase">Readiness Evaluation</p>
             <button
               onClick={() => setShowAssign(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-400/40 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-blue-300 hover:text-blue-200 border-[3px] border-white rounded-xl bg-[#0a0f1d]/80 shadow-md backdrop-blur-xl transition-all"
             >
-              <Plus className="w-3 h-3" /> Assign Asset
+              <Plus className="w-3.5 h-3.5" /> Assign Asset
             </button>
           </div>
           {readiness ? (
             <ReadinessPanel readiness={readiness} onEvaluate={handleEvaluate} evaluating={evaluating} />
           ) : (
-            <div className="bg-slate-900/40 border border-dashed border-slate-700 rounded-xl p-8 text-center">
-              <p className="text-slate-500 font-mono text-sm">No readiness evaluation yet.</p>
+            <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
+              <p className="text-slate-400 font-mono text-sm">No readiness evaluation yet.</p>
               <button
                 onClick={handleEvaluate}
                 disabled={evaluating}
-                className="mt-3 px-4 py-2 text-xs font-mono font-bold bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 rounded-lg disabled:opacity-50 transition-colors"
+                className="mt-3 px-5 py-2.5 text-xs font-mono font-bold bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 rounded-xl disabled:opacity-50 transition-colors"
               >
                 {evaluating ? 'Evaluating…' : 'Run Evaluation'}
               </button>
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </NavBar>
   );
 }

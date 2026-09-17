@@ -3,40 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  Shield, LogOut, Loader2, WifiOff, Menu, X,
+  Bell, Clock, RefreshCw, User, ChevronDown, ChevronLeft, Shield
 } from 'lucide-react';
-import { getUser, clearSession, getHealth, isAuthenticated } from '../lib/api';
-
-const NAV_LINKS = [
-  { href: '/dashboard',    label: 'Dashboard' },
-  { href: '/assets',       label: 'Assets' },
-  { href: '/missions',     label: 'Missions' },
-  { href: '/maintenance',  label: 'Maintenance' },
-  { href: '/alerts',       label: 'Alerts' },
-  { href: '/data-quality', label: 'Data Quality' },
-  { href: '/copilot',      label: 'Copilot' },
-  { href: '/models',       label: 'Models' },
-];
+import Sidebar from './Sidebar';
+import { getUser, clearSession } from '../lib/api';
 
 /**
- * Shared top navigation bar for all authenticated pages.
- *
- * Props:
- *   title   — optional breadcrumb segment after the brand (e.g. "Assets / AH-64-01")
- *   onBack  — optional back-button handler; if omitted no back button is shown
+ * Universal Mission-Control Layout Shell Component for all secondary pages.
  */
-export default function NavBar({ title, onBack }) {
+export default function NavBar({ title, onBack, children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState(null);
-  const [apiStatus, setApiStatus] = useState('checking');
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
   useEffect(() => {
     setUser(getUser());
-    getHealth()
-      .then(() => setApiStatus('online'))
-      .catch(() => setApiStatus('offline'));
   }, []);
 
   const handleLogout = () => {
@@ -44,128 +26,128 @@ export default function NavBar({ title, onBack }) {
     router.push('/login');
   };
 
+  const refreshPage = () => {
+    setLastRefresh(new Date());
+    router.refresh();
+  };
+
   return (
-    <header className="sticky top-0 z-30 bg-[#070a12]/95 backdrop-blur-md border-b border-slate-800/70 px-4 sm:px-6 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <div className="min-h-screen bg-[#050811] text-slate-100 font-sans flex overflow-x-hidden selection:bg-blue-600/30">
+      {/* 1. Full-Screen Background Overlay Layer */}
+      <div className="fixed inset-0 bg-[url('/images/landing-bg.png')] bg-cover bg-center opacity-30 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-gradient-to-b from-[#050811]/90 via-[#050811]/80 to-[#050811]/95 pointer-events-none z-0" />
 
-        {/* Brand + optional back + breadcrumb */}
-        <div className="flex items-center gap-3 min-w-0">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="text-slate-400 hover:text-slate-200 shrink-0"
-              aria-label="Go back"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-          <a href="/dashboard" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
-              <Shield className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-sm font-bold font-mono uppercase tracking-wider text-slate-100">
-              Mission<span className="text-blue-400">Ready</span>
-            </span>
-          </a>
-          {title && (
-            <span className="hidden sm:block text-slate-600 font-mono text-sm">
-              / <span className="text-slate-300">{title}</span>
-            </span>
-          )}
-        </div>
+      {/* 2. Left Navigation Sidebar */}
+      <Sidebar />
 
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-0.5 text-[11px] font-mono">
-          {NAV_LINKS.map(({ href, label }) => {
-            const active = pathname === href || pathname?.startsWith(href + '/');
-            return (
-              <a
-                key={href}
-                href={href}
-                className={`px-2.5 py-1.5 rounded-lg transition-colors ${
-                  active
-                    ? 'bg-blue-500/15 text-blue-400'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
-                }`}
+      {/* 3. Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+
+        {/* Top Header Bar matching Dashboard */}
+        <header className="w-full px-8 lg:px-10 py-4 border-b border-slate-800/80 bg-[#060913]/60 backdrop-blur-md flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 font-mono text-xs">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-1.5 rounded-lg bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600/20 transition-colors mr-1 flex items-center gap-1 font-semibold"
+                title="Go Back"
               >
-                {label}
-              </a>
-            );
-          })}
-        </nav>
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+            )}
 
-        {/* Right cluster */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* API status pill */}
-          <div
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono border"
-            style={{
-              background: apiStatus === 'online' ? 'rgba(6,78,59,.4)' : apiStatus === 'offline' ? 'rgba(69,10,10,.4)' : 'rgba(15,23,42,.4)',
-              borderColor: apiStatus === 'online' ? 'rgba(6,95,70,.8)' : apiStatus === 'offline' ? 'rgba(127,29,29,.8)' : 'rgba(51,65,85,.8)',
-              color: apiStatus === 'online' ? '#34d399' : apiStatus === 'offline' ? '#f87171' : '#94a3b8',
-            }}
-          >
-            {apiStatus === 'online'
-              ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /><span>ONLINE</span></>
-              : apiStatus === 'offline'
-              ? <><WifiOff className="w-2.5 h-2.5" /><span>OFFLINE</span></>
-              : <><Loader2 className="w-2.5 h-2.5 animate-spin" /><span>…</span></>
-            }
+            {/* Active Navigation Pills */}
+            <a
+              href="/dashboard"
+              className={`px-3.5 py-1 rounded-full transition-colors ${
+                pathname === '/dashboard'
+                  ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              Dashboard
+            </a>
+            <a
+              href="/assets"
+              className={`px-3.5 py-1 rounded-full transition-colors ${
+                pathname?.startsWith('/assets')
+                  ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              Fleet
+            </a>
+            <a
+              href="/maintenance"
+              className={`px-3.5 py-1 rounded-full transition-colors ${
+                pathname?.startsWith('/maintenance')
+                  ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              Maintenance
+            </a>
+            <a
+              href="/alerts"
+              className={`px-3.5 py-1 rounded-full transition-colors ${
+                pathname?.startsWith('/alerts')
+                  ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              Alerts
+            </a>
+            <a
+              href="/missions"
+              className={`px-3.5 py-1 rounded-full transition-colors ${
+                pathname?.startsWith('/missions')
+                  ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              Sessions
+            </a>
+
+            {title && (
+              <span className="hidden sm:flex items-center gap-2 text-slate-400 border-l border-slate-800/80 pl-3">
+                <span className="text-slate-100 font-bold">{title}</span>
+              </span>
+            )}
           </div>
 
-          {/* User + logout */}
-          {user && (
-            <>
-              <div className="text-right hidden md:block">
-                <p className="text-[10px] text-slate-500 font-mono uppercase">{user.role}</p>
-                <p className="text-[11px] font-semibold text-slate-200 leading-tight">{user.full_name}</p>
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-4">
+            <a href="/alerts" className="relative p-1.5 text-slate-400 hover:text-slate-200 transition-colors">
+              <Bell className="w-4 h-4" />
+            </a>
+
+            {user && (
+              <div className="flex items-center gap-2 text-xs font-mono border-l border-slate-800/80 pl-4">
+                <div className="w-7.5 h-7.5 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <span className="text-slate-300 font-medium hidden sm:inline">
+                  Welcome, <strong className="text-slate-100">{user.full_name?.split(' ')[0] || 'Operator'}</strong>
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-slate-500 hover:text-red-400 p-1 transition-colors"
+                  title="Sign Out"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-red-900/50 transition-colors"
-                aria-label="Sign out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Out</span>
-              </button>
-            </>
-          )}
+            )}
+          </div>
+        </header>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden text-slate-400 hover:text-slate-200 p-1"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+        {/* Render Children or Return Layout Shell */}
+        {children ? (
+          <main className="p-8 lg:p-12 space-y-8 max-w-[1400px] w-full mx-auto">
+            {children}
+          </main>
+        ) : null}
       </div>
-
-      {/* Mobile nav dropdown */}
-      {mobileOpen && (
-        <div className="lg:hidden border-t border-slate-800/60 mt-3 pt-3 pb-2 px-1 flex flex-col gap-1">
-          {NAV_LINKS.map(({ href, label }) => {
-            const active = pathname === href || pathname?.startsWith(href + '/');
-            return (
-              <a
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className={`px-3 py-2 rounded-lg text-sm font-mono transition-colors ${
-                  active
-                    ? 'bg-blue-500/15 text-blue-400'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
-                }`}
-              >
-                {label}
-              </a>
-            );
-          })}
-        </div>
-      )}
-    </header>
+    </div>
   );
 }

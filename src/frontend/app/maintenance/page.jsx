@@ -68,10 +68,10 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-      <div className="w-full max-w-xl bg-[#0d1117] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-xl bg-[#090d16] border-[3px] border-white rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <Wrench className="w-4 h-4 text-amber-400" />
+            <Wrench className="w-5 h-5 text-amber-400" />
             <h2 className="text-sm font-bold font-mono text-slate-100">New Work Order</h2>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors"><X className="w-4 h-4" /></button>
@@ -100,41 +100,32 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
             <div>
               <label className="block text-[11px] font-mono text-slate-400 mb-1">Asset</label>
               <select value={form.asset_id} onChange={(e) => setField('asset_id', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-blue-500">
-                <option value="">— select asset —</option>
-                {assets.map((a) => <option key={a.id} value={a.id}>{a.asset_code} — {a.name}</option>)}
+                className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="">Unassigned</option>
+                {assets.map((a) => (
+                  <option key={a.id} value={a.id}>{a.asset_code} ({a.asset_type})</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Urgency Level</label>
+              <label className="block text-[11px] font-mono text-slate-400 mb-1">Urgency</label>
               <select value={form.urgency_level} onChange={(e) => setField('urgency_level', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-blue-500">
-                {['IMMEDIATE', 'URGENT', 'SCHEDULED', 'ROUTINE', 'DEFERRED'].map((u) => <option key={u}>{u}</option>)}
+                className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="IMMEDIATE">IMMEDIATE</option>
+                <option value="URGENT">URGENT</option>
+                <option value="SCHEDULED">SCHEDULED</option>
+                <option value="ROUTINE">ROUTINE</option>
+                <option value="DEFERRED">DEFERRED</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Est. Hours</label>
-              <input type="number" min="0" step="0.5" value={form.estimated_hours} onChange={(e) => setField('estimated_hours', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500"
-                placeholder="2.0" />
-            </div>
-            <div className="flex items-center gap-2 mt-5">
-              <input type="checkbox" id="blocking" checked={form.is_blocking} onChange={(e) => setField('is_blocking', e.target.checked)}
-                className="rounded border-slate-600 bg-slate-900" />
-              <label htmlFor="blocking" className="text-xs font-mono text-slate-300">Blocks mission assignment</label>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2 border-t border-slate-800">
-            <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-mono text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 rounded-xl transition-colors">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving}
-              className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 rounded-xl disabled:opacity-50 transition-colors">
+          <div className="flex items-center justify-between pt-2">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-slate-300">
+              <input type="checkbox" checked={form.is_blocking} onChange={(e) => setField('is_blocking', e.target.checked)} className="rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-0" />
+              Blocks Mission Readiness
+            </label>
+            <button type="submit" disabled={saving} className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs rounded-xl disabled:opacity-50">
               {saving ? 'Creating…' : 'Create Work Order'}
             </button>
           </div>
@@ -146,10 +137,10 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
 
 export default function MaintenancePage() {
   const router = useRouter();
-  const [tab, setTab] = useState('queue');
-  const [queue, setQueue] = useState(null);
+  const [queue, setQueue]           = useState(null);
   const [workOrders, setWorkOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
+  const [tab, setTab]               = useState('queue');
   const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
@@ -159,14 +150,10 @@ export default function MaintenancePage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [q, w] = await Promise.all([
-        getMaintenanceQueue(),
-        listWorkOrders({ limit: 100 }),
-      ]);
-      setQueue(q);
-      setWorkOrders(w || []);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+      const [q, wo] = await Promise.allSettled([getMaintenanceQueue(), listWorkOrders({ limit: 100 })]);
+      if (q.status === 'fulfilled')  setQueue(q.value);
+      if (wo.status === 'fulfilled') setWorkOrders(wo.value || []);
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -182,41 +169,45 @@ export default function MaintenancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 font-sans">
-      <NavBar title="Maintenance" onBack={() => router.push('/dashboard')} />
-
+    <NavBar title="Fleet Maintenance" onBack={() => router.push('/dashboard')}>
       {showCreate && (
         <CreateWorkOrderModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />
       )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-xl font-bold">Maintenance</h1>
+      <div className="space-y-6">
+        {/* Title Header */}
+        <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
+          <div className="space-y-1">
+            <span className="inline-block px-3 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 text-blue-400 border border-blue-800/60 mb-1">
+              MAINTENANCE QUEUE
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 font-sans">
+              Maintenance Management
+            </h1>
             {queue && (
-              <div className="flex gap-3 text-xs font-mono mt-0.5">
-                <span className="text-red-400">{queue.total_immediate} IMMEDIATE</span>
-                <span className="text-amber-400">{queue.total_urgent} URGENT</span>
-                <span className="text-blue-400">{queue.total_scheduled} SCHEDULED</span>
+              <div className="flex gap-4 text-xs font-mono pt-1">
+                <span className="text-red-400 font-bold">{queue.total_immediate} IMMEDIATE</span>
+                <span className="text-amber-400 font-bold">{queue.total_urgent} URGENT</span>
+                <span className="text-blue-400 font-bold">{queue.total_scheduled} SCHEDULED</span>
               </div>
             )}
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-mono font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-400/50 text-amber-400 rounded-xl transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-amber-500/10 hover:bg-amber-500/20 border-[3px] border-white text-amber-300 rounded-2xl transition-all shadow-xl backdrop-blur-xl"
           >
             <Plus className="w-4 h-4" />
             New Work Order
           </button>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex gap-2 border-b border-slate-800">
+        {/* Tab switcher Box */}
+        <div className="flex gap-3 bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-2 backdrop-blur-xl shadow-xl w-fit">
           {[{ id: 'queue', label: 'Priority Queue' }, { id: 'work-orders', label: 'Work Orders' }].map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`px-4 py-2 text-sm font-mono border-b-2 transition-colors ${tab === id ? 'border-blue-400 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+              className={`px-5 py-2.5 text-xs font-mono font-bold rounded-xl transition-all ${tab === id ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 shadow-md' : 'text-slate-400 hover:text-slate-100'}`}
             >
               {label}
             </button>
@@ -224,41 +215,35 @@ export default function MaintenancePage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-20 bg-slate-800/60 rounded-xl animate-pulse" />)}</div>
+          <div className="space-y-4">{[...Array(5)].map((_, i) => <div key={i} className="h-24 bg-slate-900/60 rounded-2xl border-[3px] border-white animate-pulse" />)}</div>
         ) : tab === 'queue' ? (
           queue?.items?.length === 0 ? (
-            <p className="text-slate-500 font-mono text-sm py-8 text-center">No open maintenance items.</p>
+            <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-12 text-center backdrop-blur-xl shadow-xl">
+              <p className="text-slate-400 font-mono text-sm">No open maintenance queue items.</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {(queue?.items || []).map((item) => (
-                <div key={item.item_id} className="bg-slate-900/40 border border-slate-800 rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <div key={item.item_id} className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-6 backdrop-blur-xl shadow-xl">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         <UrgencyBadge level={item.urgency_level} />
-                        <span className="font-mono font-semibold text-slate-100">{item.asset_code}</span>
-                        <span className="text-slate-500 font-mono text-xs">/ {item.component_code}</span>
+                        <span className="font-mono font-bold text-base text-slate-100">{item.asset_code}</span>
+                        <span className="text-slate-400 font-mono text-xs">/ {item.component_code}</span>
                         {item.blocks_mission && (
-                          <span className="text-[10px] font-mono bg-red-500/10 border border-red-500/30 text-red-400 px-2 py-0.5 rounded">BLOCKS MISSION</span>
+                          <span className="text-[10px] font-mono bg-red-500/10 border border-red-500/30 text-red-400 px-2.5 py-0.5 rounded font-bold">BLOCKS MISSION</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-300">{item.description}</p>
-                      <p className="text-xs text-slate-500 font-mono mt-1">{item.recommended_action}</p>
+                      <p className="text-sm text-slate-200">{item.description}</p>
+                      <p className="text-xs text-slate-400 font-mono">{item.recommended_action}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-slate-500 font-mono">Priority Score</p>
-                      <p className="text-xl font-bold font-mono tabular-nums" style={{color: item.priority_score > 0.7 ? '#f87171' : item.priority_score > 0.5 ? '#fbbf24' : '#94a3b8'}}>
+                    <div className="text-right shrink-0 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
+                      <p className="text-xs text-slate-400 font-mono">Priority Score</p>
+                      <p className="text-2xl font-black font-mono tabular-nums mt-0.5" style={{color: item.priority_score > 0.7 ? '#f87171' : item.priority_score > 0.5 ? '#fbbf24' : '#94a3b8'}}>
                         {(item.priority_score * 100).toFixed(0)}
                       </p>
                     </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-slate-800/60 grid grid-cols-3 sm:grid-cols-7 gap-2 text-[10px] font-mono">
-                    {Object.entries(item.score_breakdown || {}).filter(([k]) => k !== 'total').map(([key, val]) => (
-                      <div key={key} className="text-center">
-                        <p className="text-slate-600 truncate">{key.replace(/_score$/, '').replace(/_/g, ' ')}</p>
-                        <p className="text-slate-300">{(val * 100).toFixed(0)}</p>
-                      </div>
-                    ))}
                   </div>
                 </div>
               ))}
@@ -266,43 +251,43 @@ export default function MaintenancePage() {
           )
         ) : (
           workOrders.length === 0 ? (
-            <div className="bg-slate-900/40 border border-dashed border-slate-700 rounded-xl p-12 text-center">
-              <p className="text-slate-500 font-mono text-sm">No work orders found.</p>
-              <button onClick={() => setShowCreate(true)} className="mt-3 text-amber-400 hover:text-amber-300 text-xs font-mono underline">
+            <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-12 text-center backdrop-blur-xl shadow-xl">
+              <p className="text-slate-400 font-mono text-sm">No work orders found.</p>
+              <button onClick={() => setShowCreate(true)} className="mt-3 text-amber-400 hover:text-amber-300 text-xs font-mono font-bold underline">
                 Create the first work order
               </button>
             </div>
           ) : (
-            <div className="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl backdrop-blur-xl shadow-xl overflow-hidden p-6">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-[11px] font-mono text-slate-500 uppercase">
-                    <th className="text-left px-4 py-3">Title</th>
-                    <th className="text-left px-4 py-3 hidden sm:table-cell">Status</th>
-                    <th className="text-left px-4 py-3 hidden md:table-cell">Urgency</th>
-                    <th className="text-left px-4 py-3 hidden lg:table-cell">Blocking</th>
-                    <th className="px-4 py-3" />
+                  <tr className="border-b border-slate-800/80 text-xs font-mono text-slate-400 uppercase bg-slate-950/40">
+                    <th className="text-left px-4 py-3.5">Title</th>
+                    <th className="text-left px-4 py-3.5 hidden sm:table-cell">Status</th>
+                    <th className="text-left px-4 py-3.5 hidden md:table-cell">Urgency</th>
+                    <th className="text-left px-4 py-3.5 hidden lg:table-cell">Blocking</th>
+                    <th className="px-4 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-800/50">
                   {workOrders.map((wo) => (
-                    <tr key={wo.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-slate-100 truncate max-w-xs">{wo.title}</p>
-                        <p className="text-[11px] text-slate-500 font-mono">{wo.asset_id?.slice(0, 8)}…</p>
+                    <tr key={wo.id} className="hover:bg-slate-900/60 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <p className="font-bold text-slate-100 truncate max-w-xs">{wo.title}</p>
+                        <p className="text-xs text-slate-400 font-mono">{wo.asset_id?.slice(0, 8)}…</p>
                       </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className={`text-[10px] font-mono font-bold uppercase ${wo.status === 'OPEN' ? 'text-amber-400' : wo.status === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-400'}`}>{wo.status}</span>
+                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                        <span className={`text-xs font-mono font-bold uppercase ${wo.status === 'OPEN' ? 'text-amber-400' : wo.status === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-400'}`}>{wo.status}</span>
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell"><UrgencyBadge level={wo.urgency_level} /></td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
-                        {wo.is_blocking ? <span className="text-red-400 text-xs font-mono">YES</span> : <span className="text-slate-600 text-xs font-mono">No</span>}
+                      <td className="px-4 py-3.5 hidden md:table-cell"><UrgencyBadge level={wo.urgency_level} /></td>
+                      <td className="px-4 py-3.5 hidden lg:table-cell">
+                        {wo.is_blocking ? <span className="text-red-400 text-xs font-mono font-bold">YES</span> : <span className="text-slate-500 text-xs font-mono">No</span>}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5 text-right">
                         {wo.status === 'OPEN' && (
                           <button
                             onClick={() => handleClose(wo.id)}
-                            className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded border border-emerald-500/20 hover:border-emerald-400/40 transition-colors"
+                            className="text-xs font-mono font-bold text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-600/10 transition-colors"
                           >
                             Close
                           </button>
@@ -315,7 +300,7 @@ export default function MaintenancePage() {
             </div>
           )
         )}
-      </main>
-    </div>
+      </div>
+    </NavBar>
   );
 }

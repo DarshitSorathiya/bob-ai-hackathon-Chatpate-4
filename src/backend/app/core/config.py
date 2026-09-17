@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Set CORS_ORIGINS in the environment. Examples:
     #   Local dev:   http://localhost:3000,http://localhost:5173
     #   Production:  https://bob-ai-hackathon-chatpate-4-3qeuovfjw.vercel.app
-    cors_origins: str = "https://bob-ai-hackathon-chatpate-4-3qeuovfjw.vercel.app,http://localhost:3000,http://localhost:5173"
+    cors_origins: str = "http://localhost:3000,http://localhost:5173"
 
     # Google OAuth (optional)
     google_client_id: str | None = None
