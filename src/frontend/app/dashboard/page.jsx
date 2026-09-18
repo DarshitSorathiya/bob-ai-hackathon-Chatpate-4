@@ -111,56 +111,23 @@ export default function DashboardPage() {
 
   // Counts matching Picture 1 defaults
   const counts = {
-    READY: fleetSummary?.counts?.READY ?? 18,
-    AT_RISK: fleetSummary?.counts?.AT_RISK ?? 4,
-    NOT_READY: fleetSummary?.counts?.NOT_READY ?? 3,
+    READY: fleetSummary?.counts?.READY ?? 0,
+    AT_RISK: fleetSummary?.counts?.AT_RISK ?? 0,
+    NOT_READY: fleetSummary?.counts?.NOT_READY ?? 0,
   };
 
   const firstName = user.full_name?.split(' ')[0] || 'Tulsi';
 
-  // 5 Recent Activity items matching Picture 1
-  const activityItems = [
-    {
-      id: 1,
-      icon: Wrench,
-      colorCls: 'bg-blue-600/15 border-blue-500/30 text-blue-400',
-      title: 'Aircraft A-102',
-      subtitle: 'Maintenance scheduled',
-      time: '2h ago',
-    },
-    {
-      id: 2,
-      icon: AlertTriangle,
-      colorCls: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
-      title: 'Aircraft B-047',
-      subtitle: 'Alert raised - Engine temperature',
-      time: '3h ago',
-    },
-    {
-      id: 3,
-      icon: Calendar,
-      colorCls: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
-      title: 'Session S-003',
-      subtitle: 'Started - Mission Briefing',
-      time: '4h ago',
-    },
-    {
-      id: 4,
-      icon: Plane,
-      colorCls: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400',
-      title: 'Aircraft C-018',
-      subtitle: 'Status changed to Ready',
-      time: '5h ago',
-    },
-    {
-      id: 5,
-      icon: Wrench,
-      colorCls: 'bg-blue-600/15 border-blue-500/30 text-blue-400',
-      title: 'Aircraft D-063',
-      subtitle: 'Maintenance completed',
-      time: '6h ago',
-    },
-  ];
+  const activityItems = recentAlerts.slice(0, 5).map((alert) => ({
+    id: alert.id,
+    icon: alert.severity === 'critical' ? AlertTriangle : Wrench,
+    colorCls: alert.severity === 'critical'
+      ? 'bg-red-500/15 border-red-500/30 text-red-400'
+      : 'bg-amber-500/15 border-amber-500/30 text-amber-400',
+    title: alert.title,
+    subtitle: alert.message,
+    time: alert.created_at ? new Date(alert.created_at).toLocaleString() : 'Recently',
+  }));
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 font-sans flex flex-col selection:bg-blue-600/30">
@@ -235,10 +202,10 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-4 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-blue-400" /> Due Soon <strong className="text-slate-100 ml-0.5">6</strong>
+                <span className="w-2 h-2 rounded-full bg-blue-400" /> Due Soon <strong className="text-slate-100 ml-0.5">{maintenanceQueue?.total_scheduled ?? 0}</strong>
               </span>
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-purple-400" /> In Progress <strong className="text-slate-100 ml-0.5">2</strong>
+                <span className="w-2 h-2 rounded-full bg-purple-400" /> In Progress <strong className="text-slate-100 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -252,13 +219,13 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-4 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-red-400" /> Critical <strong className="text-slate-100 ml-0.5">2</strong>
+                <span className="w-2 h-2 rounded-full bg-red-400" /> Critical <strong className="text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'critical').length}</strong>
               </span>
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-amber-400" /> Warning <strong className="text-slate-100 ml-0.5">5</strong>
+                <span className="w-2 h-2 rounded-full bg-amber-400" /> Warning <strong className="text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'warning').length}</strong>
               </span>
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" /> Info <strong className="text-slate-100 ml-0.5">7</strong>
+                <span className="w-2 h-2 rounded-full bg-cyan-400" /> Info <strong className="text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'info').length}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -272,10 +239,10 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-4 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Active <strong className="text-slate-100 ml-0.5">3</strong>
+                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Active <strong className="text-slate-100 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
               </span>
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-blue-400" /> Upcoming <strong className="text-slate-100 ml-0.5">4</strong>
+                <span className="w-2 h-2 rounded-full bg-blue-400" /> Upcoming <strong className="text-slate-100 ml-0.5">{maintenanceQueue?.items?.length ?? 0}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -309,7 +276,9 @@ export default function DashboardPage() {
 
                 {/* Activity List */}
                 <div className="divide-y divide-slate-800/60">
-                  {activityItems.map((item) => {
+                  {activityItems.length === 0 ? (
+                    <p className="py-6 text-xs font-mono text-slate-500">No recent activity.</p>
+                  ) : activityItems.map((item) => {
                     const ItemIcon = item.icon;
                     return (
                       <div key={item.id} className="py-3 flex items-center justify-between gap-3">

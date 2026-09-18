@@ -95,15 +95,15 @@ export default function CopilotPage() {
 
       const assistantMsg = {
         role: 'assistant',
-        content: response.answer || response.response || 'Asset A-102 shows elevated hydraulic line pressure fluctuation (1850 PSI). Recommended action: Perform main seal overhaul and leak check prior to mission briefing.',
-        citations: response.citations || response.evidence || [{ source_type: 'TELEMETRY', title: 'HUMS Sensor Log #882', confidence: 0.94 }],
+        content: response.answer || response.response || 'No response was returned for this query.',
+        citations: response.citations || response.evidence || [],
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        content: `Retrieved Telemetry Evidence: Asset A-102 shows elevated hydraulic line pressure fluctuation (1850 PSI). Recommended action: Perform main seal overhaul and leak check prior to mission briefing.`,
-        citations: [{ source_type: 'TELEMETRY', title: 'HUMS Sensor Log #882', confidence: 0.94 }]
+        content: 'I could not retrieve telemetry evidence right now. Please try again.',
+        citations: [],
       }]);
     } finally {
       setLoading(false);

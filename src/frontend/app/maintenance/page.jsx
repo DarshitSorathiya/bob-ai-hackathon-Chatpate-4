@@ -168,41 +168,7 @@ export default function MaintenancePage() {
     load();
   };
 
-  // Default queue items if backend queue is empty
-  const defaultItems = [
-    {
-      item_id: '1',
-      urgency_level: 'IMMEDIATE',
-      asset_code: 'A-102',
-      component_code: 'ENG-MAIN-01',
-      description: 'Hydraulic pressure drop detected during pre-flight diagnostics.',
-      recommended_action: 'Perform main seal overhaul and leak check.',
-      blocks_mission: true,
-      priority_score: 0.94,
-    },
-    {
-      item_id: '2',
-      urgency_level: 'URGENT',
-      asset_code: 'B-047',
-      component_code: 'HUMS-SNSR-04',
-      description: 'Elevated rotor vibration amplitude over 0.85g threshold.',
-      recommended_action: 'Calibrate HUMS accelerometer sensor and inspect bearing.',
-      blocks_mission: true,
-      priority_score: 0.78,
-    },
-    {
-      item_id: '3',
-      urgency_level: 'SCHEDULED',
-      asset_code: 'D-063',
-      component_code: 'AV-RAD-02',
-      description: 'Routine 250-hour radar cooling fluid flush.',
-      recommended_action: 'Replace coolant fluid filter and inspect valve seals.',
-      blocks_mission: false,
-      priority_score: 0.45,
-    },
-  ];
-
-  const items = queue?.items?.length ? queue.items : defaultItems;
+  const items = queue?.items || [];
 
   return (
     <NavBar title="Fleet Maintenance" onBack={() => router.push('/dashboard')}>
@@ -221,9 +187,9 @@ export default function MaintenancePage() {
               Maintenance Management
             </h1>
             <div className="flex gap-4 text-xs font-mono pt-1">
-              <span className="text-red-400 font-bold">{queue?.total_immediate || 2} IMMEDIATE</span>
-              <span className="text-amber-400 font-bold">{queue?.total_urgent || 4} URGENT</span>
-              <span className="text-blue-400 font-bold">{queue?.total_scheduled || 6} SCHEDULED</span>
+              <span className="text-red-400 font-bold">{queue?.total_immediate ?? 0} IMMEDIATE</span>
+              <span className="text-amber-400 font-bold">{queue?.total_urgent ?? 0} URGENT</span>
+              <span className="text-blue-400 font-bold">{queue?.total_scheduled ?? 0} SCHEDULED</span>
             </div>
           </div>
           <button
@@ -252,7 +218,9 @@ export default function MaintenancePage() {
           <div className="space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="h-24 dashboard-card-shape rounded-2xl animate-pulse" />)}</div>
         ) : tab === 'queue' ? (
           <div className="space-y-4">
-            {items.map((item) => (
+            {items.length === 0 ? (
+              <p className="py-12 text-center text-xs font-mono text-slate-500">No maintenance queue items found.</p>
+            ) : items.map((item) => (
               <div key={item.item_id} className="dashboard-card-shape rounded-2xl p-6">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex-1 min-w-0 space-y-2">
@@ -290,11 +258,7 @@ export default function MaintenancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
-                {(workOrders.length > 0 ? workOrders : [
-                  { id: '1', title: 'Turbofan Hydraulic Line Replacement', asset_id: 'A-102', status: 'OPEN', urgency_level: 'IMMEDIATE', is_blocking: true },
-                  { id: '2', title: 'Rotor Vibration Sensor Calibration', asset_id: 'B-047', status: 'OPEN', urgency_level: 'URGENT', is_blocking: true },
-                  { id: '3', title: 'Radar Cooling Fluid Flush', asset_id: 'D-063', status: 'COMPLETED', urgency_level: 'SCHEDULED', is_blocking: false }
-                ]).map((wo) => (
+                {workOrders.map((wo) => (
                   <tr key={wo.id} className="hover:bg-slate-900/60 transition-colors">
                     <td className="px-4 py-3.5">
                       <p className="font-bold text-slate-100 truncate max-w-xs">{wo.title}</p>

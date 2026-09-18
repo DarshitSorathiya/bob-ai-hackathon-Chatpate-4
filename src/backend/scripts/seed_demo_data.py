@@ -22,6 +22,7 @@ ML pipeline (simulator or real data ingestion).
 from __future__ import annotations
 
 import argparse
+import random
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -130,7 +131,67 @@ SENSORS = {
 NOW = datetime.now(timezone.utc)
 
 
-def seed(session, reset: bool = False) -> None:
+def build_synthetic_fixture(asset_count: int, seed: int) -> tuple[list[dict], dict[str, list[dict]], dict[str, list[dict]]]:
+    """Extend the hand-authored fixture with deterministic synthetic fleet data."""
+    if asset_count < len(ASSETS):
+        raise ValueError(f"asset_count must be at least {len(ASSETS)}")
+
+    rng = random.Random(seed)
+    assets = [asset.copy() for asset in ASSETS]
+    components = {code: [component.copy() for component in values] for code, values in COMPONENTS.items()}
+    sensors = {code: [sensor.copy() for sensor in values] for code, values in SENSORS.items()}
+    asset_types = ["HELICOPTER", "FIXED_WING", "GROUND_VEHICLE", "UAV"]
+    component_types = [("ENGINE", "Engine"), ("AVIONICS", "Avionics Suite")]
+
+    for index in range(len(assets) + 1, asset_count + 1):
+        asset_type = rng.choice(asset_types)
+        asset_code = f"SIM-{index:03d}"
+        assets.append({
+            "asset_code": asset_code,
+            "asset_type": asset_type,
+            "call_sign": f"Synthetic {index:02d}",
+            "description": f"Synthetic {asset_type.lower().replace('_', ' ')} generated for demonstration",
+            "manufacturer": "Synthetic Dynamics",
+            "model_number": f"SD-{rng.randint(10, 99)}",
+            "serial_number": f"SYN-SN-{index:04d}",
+            "total_hours": round(rng.uniform(250.0, 7800.0), 1),
+            "is_active": True,
+        })
+
+        component_list = []
+        for component_index, (component_type, component_name) in enumerate(component_types, start=1):
+            component_code = f"{asset_code}-C{component_index}"
+            component_list.append({
+                "component_code": component_code,
+                "component_type": component_type,
+                "name": f"{component_name} {component_index}",
+                "criticality": "HIGH" if component_index == 1 else "MEDIUM",
+            })
+            sensors[component_code] = [{
+                "sensor_code": f"{component_code}-T",
+                "sensor_type": "TEMPERATURE",
+                "name": f"{component_name} Temperature",
+                "unit": "°C",
+                "nominal_min": 20.0,
+                "nominal_max": 120.0,
+                "critical_min": 0.0,
+                "critical_max": 160.0,
+            }, {
+                "sensor_code": f"{component_code}-V",
+                "sensor_type": "VIBRATION",
+                "name": f"{component_name} Vibration",
+                "unit": "mm/s",
+                "nominal_min": 0.0,
+                "nominal_max": 12.0,
+                "critical_min": 0.0,
+                "critical_max": 25.0,
+            }]
+        components[asset_code] = component_list
+
+    return assets, components, sensors
+
+
+def seed(session, reset: bool = False, asset_count: int = 12, seed_value: int = 42) -> None:
     if reset:
         print("Resetting existing demo data...")
         for model in [DataQualityEvent, Alert, WorkOrder, MissionRequirement, Mission,
@@ -145,9 +206,11 @@ def seed(session, reset: bool = False) -> None:
         print("Demo data already exists. Use --reset to re-seed.")
         return
 
-    print("Seeding assets...")
+    asset_specs, component_specs, sensor_specs = build_synthetic_fixture(asset_count, seed_value)
+
+    print(f"Seeding {len(asset_specs)} assets (seed={seed_value})...")
     asset_map: dict[str, Asset] = {}
-    for a_data in ASSETS:
+    for a_data in asset_specs:
         asset = Asset(**a_data)
         session.add(asset)
         session.flush()
@@ -156,15 +219,16 @@ def seed(session, reset: bool = False) -> None:
 
     print("Seeding components and sensors...")
     comp_map: dict[str, Component] = {}
-    for asset_code, comp_list in COMPONENTS.items():
+    for asset_code, comp_list in component_specs.items():
         asset = asset_map[asset_code]
         for c_data in comp_list:
-            comp = Component(asset_id=asset.id, **c_data)
+            component_data = {key: value for key, value in c_data.items() if key != "criticality"}
+            comp = Component(asset_id=asset.id, **component_data)
             session.add(comp)
             session.flush()
             comp_map[c_data["component_code"]] = comp
 
-            for s_data in SENSORS.get(c_data["component_code"], []):
+            for s_data in sensor_specs.get(c_data["component_code"], []):
                 sensor = Sensor(asset_id=asset.id, component_id=comp.id, is_active=True, **s_data)
                 session.add(sensor)
             print(f"    + Component {c_data['component_code']}")
@@ -272,21 +336,23 @@ def seed(session, reset: bool = False) -> None:
     ))
     print("  + 3 data quality events")
 
-    print("Seeding readiness records (UNKNOWN — run /readiness/evaluate/{id} to update)...")
-    for asset in asset_map.values():
+    print("Seeding synthetic readiness records...")
+    readiness_states = [("READY", 0.96), ("AT_RISK", 0.71), ("NOT_READY", 0.38)]
+    for index, asset in enumerate(asset_map.values()):
+        readiness_status, confidence = readiness_states[index % len(readiness_states)]
         session.add(AssetReadiness(
             asset_id=asset.id,
-            status="UNKNOWN",
-            confidence=0.0,
-            primary_reason="INSUFFICIENT_DATA",
+            status=readiness_status,
+            confidence=confidence,
+            primary_reason="SYNTHETIC_DEMO_SIGNAL",
         ))
-    print("  + 3 readiness records")
+    print(f"  + {len(asset_map)} readiness records")
 
     session.commit()
     print("\n✅ Demo data seeded successfully.")
-    print(f"   Assets: {len(ASSETS)}")
-    print(f"   Components: {sum(len(v) for v in COMPONENTS.values())}")
-    print(f"   Sensors: {sum(len(v) for v in SENSORS.values())}")
+    print(f"   Assets: {len(asset_specs)}")
+    print(f"   Components: {sum(len(v) for v in component_specs.values())}")
+    print(f"   Sensors: {sum(len(v) for v in sensor_specs.values())}")
     print("   Missions: 1")
     print("   Work Orders: 3")
     print("   Alerts: 3")
@@ -296,13 +362,15 @@ def seed(session, reset: bool = False) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Seed demo data into MissionReady AI database")
     parser.add_argument("--reset", action="store_true", help="Delete existing data before seeding")
+    parser.add_argument("--count", type=int, default=12, help="Number of assets to generate (minimum 3)")
+    parser.add_argument("--seed", type=int, default=42, dest="seed_value", help="Random seed for reproducible synthetic data")
     args = parser.parse_args()
 
     from sqlalchemy.orm import Session
     Base.metadata.create_all(engine)
 
     with Session(engine) as session:
-        seed(session, reset=args.reset)
+        seed(session, reset=args.reset, asset_count=args.count, seed_value=args.seed_value)
 
 
 if __name__ == "__main__":

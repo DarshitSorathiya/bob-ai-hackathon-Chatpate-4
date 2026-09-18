@@ -455,7 +455,6 @@ def test_top_features_descending():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-@pytest.mark.slow
 @pytest.fixture(scope="module")
 def rul_trained(synthetic_dataset, tmp_path_factory):
     features_df, labels_df = synthetic_dataset
@@ -540,7 +539,6 @@ def test_rul_clipped_predictions_never_negative(rul_trained, synthetic_dataset):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-@pytest.mark.slow
 @pytest.fixture(scope="module")
 def failure_trained(synthetic_dataset, tmp_path_factory):
     features_df, labels_df = synthetic_dataset
@@ -624,7 +622,6 @@ def test_failure_probability_in_unit_interval(failure_trained, synthetic_dataset
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-@pytest.mark.slow
 @pytest.fixture(scope="module")
 def anomaly_trained(synthetic_dataset, synthetic_components_df, tmp_path_factory):
     features_df, _ = synthetic_dataset

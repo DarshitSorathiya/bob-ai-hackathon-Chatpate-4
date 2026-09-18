@@ -87,6 +87,16 @@ data/
 logs/
 *.log
 
+# Simulator profiles are source configuration; generated datasets and models remain ignored.
+!src/backend/data/
+!src/backend/data/simulator/
+!src/backend/data/simulator/profiles/
+!src/backend/data/simulator/profiles/*.yaml
+src/backend/data/training/
+src/backend/data/models/
+src/backend/data/raw/
+src/backend/data/processed/
+
 # ── Jupyter Notebooks (optional: remove if you want to commit notebooks) ──────
 # .ipynb_checkpoints/
 

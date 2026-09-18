@@ -1,0 +1,21 @@
+profile:
+  name: demo
+  n_assets: 24
+  sim_days: 180
+  timestep_hours: 1.0
+  seed: 42
+  description: Practical local demo profile with enough history for inference.
+
+edge_cases:
+  inject_missing_telemetry: true
+  inject_stale_telemetry: true
+  inject_stuck_sensor: true
+  inject_outlier: true
+  inject_drift: true
+  inject_duplicate_timestamp: true
+  inject_sensor_failure: true
+  inject_overdue_maintenance: true
+  inject_mission_conflict: true
+  inject_high_anomaly_low_failure: true
+  inject_poor_quality_genuine_degradation: true
+  inject_insufficient_data: true

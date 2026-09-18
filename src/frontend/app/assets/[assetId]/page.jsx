@@ -100,30 +100,30 @@ export default function AssetDetailPage({ params }) {
     </div>
   );
 
-  const rulPred = predictions.find((p) => p.task === 'rul');
-  const failPred = predictions.find((p) => p.task === 'failure');
+  const rulPred = predictions.find((p) => p.prediction_type === 'RUL');
+  const failPred = predictions.find((p) => p.prediction_type === 'FAILURE_RISK');
 
   const predCards = [
     {
       label: 'Remaining Useful Life',
-      value: rulPred?.prediction_value != null ? `${rulPred.prediction_value.toFixed(1)} h` : '142.5 h',
-      sub: rulPred?.model_tag ? `Model: ${rulPred.model_tag}` : 'LSTM-V2 Health Model',
+      value: rulPred?.rul_estimate != null ? `${rulPred.rul_estimate.toFixed(1)} h` : 'No prediction',
+      sub: rulPred?.confidence != null ? `${Math.round(rulPred.confidence * 100)}% confidence` : 'Awaiting model history',
       icon: Activity,
       color: 'text-blue-400',
     },
     {
       label: 'Failure Risk (24h)',
-      value: failPred?.probability != null ? `${Math.round(failPred.probability * 100)}%` : '4.2%',
-      sub: failPred?.risk_level ? `Level: ${failPred.risk_level.toUpperCase()}` : 'Level: LOW',
+      value: failPred?.failure_probability != null ? `${Math.round(failPred.failure_probability * 100)}%` : 'No prediction',
+      sub: failPred?.confidence != null ? `${Math.round(failPred.confidence * 100)}% confidence` : 'Awaiting model history',
       icon: AlertTriangle,
-      color: (failPred?.probability || 0.04) > 0.3 ? 'text-red-400' : 'text-emerald-400',
+      color: (failPred?.failure_probability || 0) > 0.3 ? 'text-red-400' : 'text-emerald-400',
     },
     {
       label: 'Readiness Engine',
-      value: readiness?.status || 'READY',
-      sub: readiness?.confidence != null ? `${Math.round(readiness.confidence * 100)}% confidence` : '96% confidence',
+      value: readiness?.status || 'UNKNOWN',
+      sub: readiness?.confidence != null ? `${Math.round(readiness.confidence * 100)}% confidence` : 'Awaiting evaluation',
       icon: Shield,
-      color: (readiness?.status || 'READY') === 'READY' ? 'text-emerald-400' : 'text-amber-400',
+      color: (readiness?.status || 'UNKNOWN') === 'READY' ? 'text-emerald-400' : 'text-amber-400',
     },
   ];
 

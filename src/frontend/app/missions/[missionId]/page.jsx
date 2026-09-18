@@ -134,6 +134,7 @@ function ReadinessPanel({ readiness, onEvaluate, evaluating }) {
   const gaps = readiness.gaps || [];
   const conflicts = readiness.conflicts || [];
   const capReadiness = readiness.capability_readiness || [];
+  const assetReadiness = readiness.asset_readiness || [];
 
   return (
     <div className="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden">
@@ -166,6 +167,23 @@ function ReadinessPanel({ readiness, onEvaluate, evaluating }) {
 
       {open && (
         <div className="px-5 pb-5 space-y-4">
+          {assetReadiness.length > 0 && (
+            <div>
+              <p className="text-[10px] font-mono text-slate-500 uppercase mb-2">Assigned Asset Decisions</p>
+              <div className="space-y-2">
+                {assetReadiness.map((asset) => (
+                  <div key={asset.asset_id} className="bg-slate-800/40 rounded-lg px-3 py-2 text-xs font-mono">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-slate-100 font-bold">{asset.asset_code}</span>
+                      <span className={asset.status === 'READY' ? 'text-emerald-400' : asset.status === 'AT_RISK' ? 'text-amber-400' : 'text-red-400'}>{asset.status} ({Math.round((asset.confidence || 0) * 100)}%)</span>
+                    </div>
+                    <p className="text-slate-400 mt-1">Cause: {asset.primary_reason}</p>
+                    {asset.contributing_factors?.length > 0 && <p className="text-slate-500 mt-1">{asset.contributing_factors.map((factor) => factor.message).join(' ')}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Capability readiness summary */}
           {capReadiness.length > 0 && (
             <div>

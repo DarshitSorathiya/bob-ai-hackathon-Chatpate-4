@@ -12,7 +12,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.api.routes import auth, health
-from app.api.routes import assets, missions, maintenance, alerts, readiness, data_quality, copilot, models
+from app.api.routes import assets, missions, maintenance, alerts, readiness, data_quality, copilot, models, telemetry
 from app.core.config import get_settings
 from app.core.database import create_tables
 from app.core.logging import configure_logging, get_logger
@@ -136,3 +136,4 @@ app.include_router(readiness.router, prefix="/api/v1")
 app.include_router(data_quality.router, prefix="/api/v1")
 app.include_router(copilot.router, prefix="/api/v1")
 app.include_router(models.router, prefix="/api/v1")
+app.include_router(telemetry.router, prefix="/api/v1")

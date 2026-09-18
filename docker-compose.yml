@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: missionready_dev_password
       POSTGRES_DB: missionready
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -41,7 +41,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - ./src/.env
     environment:
@@ -60,6 +60,23 @@ services:
         --port 8000
         --reload
 
+  # ─── Background telemetry/inference worker ────────────────────────────────
+  worker:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./src/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: python scripts/run_worker.py --interval 60
+
   # ─── Next.js frontend ─────────────────────────────────────────────────────
   frontend:
     build:
@@ -67,11 +84,12 @@ services:
       dockerfile: Dockerfile
       args:
         # The browser calls this URL, so it must be reachable from the host.
-        NEXT_PUBLIC_API_URL: "http://localhost:8000/api/v1,https://bob-ai-hackathon-chatpate-4.onrender.com/api/v1"
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "406523653013-f95ierfa3drkakn41oipsenr5no3l00c.apps.googleusercontent.com"   # set in src/.env or override here
+        NEXT_PUBLIC_API_URL: "http://localhost:8000/api/v1"
+        # This is an OAuth identifier, not a secret. Keep it in local env config.
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}"
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - backend
 

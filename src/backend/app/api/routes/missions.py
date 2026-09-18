@@ -3,6 +3,7 @@
 """
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -18,11 +19,13 @@ from app.repositories.operations_repository import (
 )
 from app.repositories.fleet_repository import AssetRepository
 from app.schemas.operations import MissionCreate, MissionAssignmentCreate, MissionResponse, MissionUpdate
+from app.services.readiness_service import ReadinessService
 
 router = APIRouter(prefix="/missions", tags=["missions"])
 
 _mission_repo = MissionRepository()
 _readiness_repo = ReadinessRepository()
+_readiness_service = ReadinessService()
 _asset_repo = AssetRepository()
 _engine = MissionEngine()
 
@@ -93,6 +96,18 @@ def update_mission(
     mission = _mission_repo.get(db, mission_id)
     if not mission:
         raise HTTPException(status_code=404, detail="Mission not found")
+
+    if body.status is not None:
+        allowed = {
+            "PLANNED": {"ACTIVE", "CANCELLED"},
+            "ACTIVE": {"COMPLETED", "CANCELLED"},
+            "COMPLETED": set(),
+            "CANCELLED": set(),
+        }
+        if body.status not in allowed:
+            raise HTTPException(status_code=400, detail="Unsupported mission status")
+        if body.status != mission.status and body.status not in allowed.get(mission.status, set()):
+            raise HTTPException(status_code=409, detail=f"Cannot move mission from {mission.status} to {body.status}")
     updated = _mission_repo.update(db, mission, body.model_dump(exclude_none=True))
     db.commit()
     return make_response(MissionResponse.model_validate(updated).model_dump(), rid)
@@ -110,6 +125,8 @@ def assign_asset(
     mission = _mission_repo.get(db, mission_id)
     if not mission:
         raise HTTPException(status_code=404, detail="Mission not found")
+    if mission.status in {"COMPLETED", "CANCELLED"}:
+        raise HTTPException(status_code=409, detail=f"Mission is already {mission.status}")
     asset = _asset_repo.get(db, body.asset_id)
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
@@ -153,10 +170,18 @@ def get_mission_readiness(
     # Build assigned asset capabilities from readiness DB records
     assignments = _mission_repo.list_assignments(db, mission_id)
     assigned_assets: list[AssetCapability] = []
+    asset_evidence: list[dict] = []
     for asgn in assignments:
         asset = _asset_repo.get(db, asgn.asset_id)
         if not asset:
             continue
+        _readiness_service.evaluate_asset(
+            db,
+            asset.id,
+            mission_id=mission.id,
+            mission_duration_hours=mission.duration_hours,
+        )
+        db.commit()
         rec = _readiness_repo.get_for_asset(db, asgn.asset_id)
         status_val = rec.status if rec else "UNKNOWN"
         confidence = rec.confidence if rec else 0.0
@@ -173,6 +198,14 @@ def get_mission_readiness(
             is_assigned=True,
             assigned_mission_ids=[str(mission_id)],
         ))
+        asset_evidence.append({
+            "asset_id": str(asset.id),
+            "asset_code": asset.asset_code,
+            "status": status_val,
+            "confidence": confidence,
+            "primary_reason": primary_reason,
+            "contributing_factors": json.loads(rec.factors_json) if rec and rec.factors_json else [],
+        })
 
     # Build fleet asset list for substitution search
     all_assets = _asset_repo.list(db, limit=500)
@@ -255,6 +288,7 @@ def get_mission_readiness(
             }
             for cr in output.capability_readiness
         ],
+        "asset_readiness": asset_evidence,
         "contributing_factors": output.contributing_factors,
         "evaluated_at": output.evaluated_at.isoformat(),
     }, rid)

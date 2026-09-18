@@ -43,37 +43,10 @@ export default function AlertsPage() {
     finally { setAcknowledging(null); }
   };
 
-  const defaultAlerts = [
-    {
-      id: '1',
-      severity: 'critical',
-      alert_type: 'ENGINE_TEMP',
-      status: 'ACTIVE',
-      title: 'Aircraft B-047: Turbine Temperature Exceeded Limit',
-      message: 'Exhaust gas temperature reached 840°C during flight test phase.',
-      created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-    },
-    {
-      id: '2',
-      severity: 'warning',
-      alert_type: 'HUMS_VIBRATION',
-      status: 'ACTIVE',
-      title: 'Aircraft A-102: HUMS Vibration Spike Detected',
-      message: 'Subsystem 3 bearing sensor measured 0.88g radial vibration.',
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    },
-    {
-      id: '3',
-      severity: 'info',
-      alert_type: 'MAINTENANCE_DUE',
-      status: 'ACTIVE',
-      title: 'Aircraft D-063: Scheduled 250h Overhaul Warning',
-      message: 'Asset within 15 flight hours of required depot maintenance.',
-      created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
-    },
-  ];
-
-  const displayAlerts = alerts.length > 0 ? alerts : defaultAlerts;
+  const displayAlerts = alerts;
+  const criticalCount = alerts.filter((alert) => alert.severity === 'critical').length;
+  const warningCount = alerts.filter((alert) => alert.severity === 'warning').length;
+  const infoCount = alerts.filter((alert) => alert.severity === 'info').length;
 
   return (
     <NavBar title="Active Alerts" onBack={() => router.push('/dashboard')}>
@@ -108,7 +81,7 @@ export default function AlertsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Critical Alerts</p>
-              <p className="text-2xl font-extrabold font-mono text-red-400 mt-1">2</p>
+              <p className="text-2xl font-extrabold font-mono text-red-400 mt-1">{criticalCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
               <ShieldAlert className="w-5 h-5" />
@@ -117,7 +90,7 @@ export default function AlertsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Warnings</p>
-              <p className="text-2xl font-extrabold font-mono text-amber-400 mt-1">5</p>
+              <p className="text-2xl font-extrabold font-mono text-amber-400 mt-1">{warningCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <AlertTriangle className="w-5 h-5" />
@@ -126,7 +99,7 @@ export default function AlertsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Info Notices</p>
-              <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">7</p>
+              <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">{infoCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
               <Bell className="w-5 h-5" />
@@ -138,7 +111,9 @@ export default function AlertsPage() {
           <div className="space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="h-24 dashboard-card-shape rounded-2xl animate-pulse" />)}</div>
         ) : (
           <div className="space-y-4">
-            {displayAlerts.map((alert) => {
+            {displayAlerts.length === 0 ? (
+              <p className="py-12 text-center text-xs font-mono text-slate-500">No alerts found.</p>
+            ) : displayAlerts.map((alert) => {
               const sev = SEVERITY_STYLES[alert.severity] || SEVERITY_STYLES.info;
               return (
                 <div

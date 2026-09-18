@@ -7,6 +7,8 @@ import { isAuthenticated, listMissions, createMission } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
 const STATUS_MAP = {
+  PLANNED:     { badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400' },
+  ACTIVE:      { badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' },
   PLANNING:    { badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400' },
   BRIEFING:    { badge: 'bg-amber-500/15 border-amber-500/30 text-amber-400' },
   IN_PROGRESS: { badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' },
@@ -32,6 +34,7 @@ function CreateMissionModal({ onClose, onCreated }) {
     priority: '3',
     planned_start: '',
     location: '',
+    requirements: [{ capability: '', required_count: '1', is_critical: true }],
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +53,19 @@ function CreateMissionModal({ onClose, onCreated }) {
         duration_hours: parseFloat(form.duration_hours) || 2.0,
         priority: parseInt(form.priority, 10) || 3,
         planned_start: form.planned_start ? new Date(form.planned_start).toISOString() : undefined,
+      const payload = {
         location: form.location.trim() || undefined,
+        requirements: form.requirements
+          .filter((requirement) => requirement.capability.trim())
+          .map((requirement) => ({
+            capability: requirement.capability.trim().toUpperCase(),
+            required_count: parseInt(requirement.required_count, 10) || 1,
+            is_critical: requirement.is_critical,
+          })),
+        const setRequirement = (index, key, value) => setForm((f) => ({
+          ...f,
+          requirements: f.requirements.map((item, i) => i === index ? { ...item, [key]: value } : item),
+        }));
       };
       const mission = await createMission(payload);
       onCreated(mission);
@@ -97,6 +112,20 @@ function CreateMissionModal({ onClose, onCreated }) {
           </div>
 
           <div className="grid grid-cols-3 gap-3">
+
+                      <div className="space-y-2 border-t border-slate-800 pt-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-mono text-slate-400">Mission Requirements</label>
+                          <button type="button" onClick={() => setForm((f) => ({ ...f, requirements: [...f.requirements, { capability: '', required_count: '1', is_critical: true }] }))} className="text-[11px] font-mono text-blue-400">Add requirement</button>
+                        </div>
+                        {form.requirements.map((requirement, index) => (
+                          <div key={index} className="grid grid-cols-[1fr_80px_auto] gap-2">
+                            <input value={requirement.capability} onChange={(e) => setRequirement(index, 'capability', e.target.value)} placeholder="HELICOPTER" className="px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100" />
+                            <input type="number" min="1" value={requirement.required_count} onChange={(e) => setRequirement(index, 'required_count', e.target.value)} className="px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100" />
+                            <label className="flex items-center gap-1 text-[10px] font-mono text-slate-400"><input type="checkbox" checked={requirement.is_critical} onChange={(e) => setRequirement(index, 'is_critical', e.target.checked)} /> critical</label>
+                          </div>
+                        ))}
+                      </div>
             <div>
               <label className="block text-[11px] font-mono text-slate-400 mb-1">Duration (h)</label>
               <input type="number" step="0.5" value={form.duration_hours} onChange={(e) => setField('duration_hours', e.target.value)}
@@ -156,13 +185,10 @@ export default function MissionsPage() {
     router.push(`/missions/${mission.id}`);
   };
 
-  const defaultMissions = [
-    { id: 's-001', mission_code: 'MIS-001', name: 'Operation Recon Alpha', status: 'IN_PROGRESS', duration_hours: 4.5, priority: 5, location: 'Sector 4 Airspace' },
-    { id: 's-002', mission_code: 'MIS-002', name: 'High Altitude Patrol', status: 'BRIEFING', duration_hours: 3.0, priority: 3, location: 'North Corridor' },
-    { id: 's-003', mission_code: 'MIS-003', name: 'Fleet Telemetry Test', status: 'PLANNING', duration_hours: 2.0, priority: 2, location: 'Proving Grounds' },
-  ];
-
-  const list = missions.length > 0 ? missions : defaultMissions;
+  const list = missions;
+  const activeCount = missions.filter((mission) => ['ACTIVE', 'IN_PROGRESS'].includes(mission.status)).length;
+  const upcomingCount = missions.filter((mission) => ['PLANNED', 'PLANNING', 'BRIEFING'].includes(mission.status)).length;
+  const completedCount = missions.filter((mission) => mission.status === 'COMPLETED').length;
 
   return (
     <NavBar title="Mission Sessions" onBack={() => router.push('/dashboard')}>
@@ -196,7 +222,7 @@ export default function MissionsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Active Sessions</p>
-              <p className="text-2xl font-extrabold font-mono text-emerald-400 mt-1">3</p>
+              <p className="text-2xl font-extrabold font-mono text-emerald-400 mt-1">{activeCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Compass className="w-5 h-5" />
@@ -205,7 +231,7 @@ export default function MissionsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Upcoming Missions</p>
-              <p className="text-2xl font-extrabold font-mono text-blue-400 mt-1">4</p>
+              <p className="text-2xl font-extrabold font-mono text-blue-400 mt-1">{upcomingCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Calendar className="w-5 h-5" />
@@ -214,7 +240,7 @@ export default function MissionsPage() {
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Completed Sessions</p>
-              <p className="text-2xl font-extrabold font-mono text-slate-400 mt-1">12</p>
+              <p className="text-2xl font-extrabold font-mono text-slate-400 mt-1">{completedCount}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-slate-500/10 border border-slate-500/30 flex items-center justify-center text-slate-400">
               <ShieldCheck className="w-5 h-5" />
@@ -228,7 +254,9 @@ export default function MissionsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {list.map((mission) => (
+            {list.length === 0 ? (
+              <p className="col-span-full py-12 text-center text-xs font-mono text-slate-500">No missions found.</p>
+            ) : list.map((mission) => (
               <div
                 key={mission.id}
                 className="dashboard-card-shape rounded-2xl p-6 cursor-pointer transition-all flex flex-col justify-between group"

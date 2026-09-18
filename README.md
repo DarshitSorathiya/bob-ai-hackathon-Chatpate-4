@@ -589,6 +589,46 @@ IMAGE_TAG=v1.2.0 DOCKERHUB_USERNAME=darshitsorathiya \
   docker compose -f docker-compose.prod.yml up -d
 ```
 
+### Train ML models from simulator, CMAPSS, and IMS data
+
+The training workflow generates a large deterministic simulator dataset, fuses
+any processed NASA C-MAPSS and IMS features into the shared schema, trains RUL,
+failure-risk, and anomaly models, registers the best models under
+`src/backend/data/models/`, and writes a prediction smoke-test summary.
+
+Download and preprocess C-MAPSS first:
+
+```powershell
+python src/backend/scripts/download_datasets.py --dataset cmapss
+python src/backend/scripts/preprocess_cmapss.py --subset all --no-checksums
+```
+
+IMS requires the NASA raw files in `src/backend/data/raw/ims/` before running:
+
+```powershell
+python src/backend/scripts/preprocess_ims.py --runs run1,run2,run3 --no-checksums
+```
+
+Run the large reproducible training job from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe src/backend/scripts/train_from_synthetic.py `
+    --shards 4 --assets-per-shard 30 --days 365 --seed 42 --require-references
+```
+
+For a local smoke run using simulator data only:
+
+```powershell
+.\.venv\Scripts\python.exe src/backend/scripts/train_from_synthetic.py `
+    --shards 1 --assets-per-shard 10 --days 90 --seed 42
+```
+
+The generated feature and label matrices are saved under
+`src/backend/data/training/`; model artifacts are saved under
+`src/backend/data/models/`. Keep the feature pipeline configuration unchanged
+between training and inference, because registered models store their feature
+schema.
+
 ### Run on another PC
 1. Install Docker on the target machine
 2. Copy `docker-compose.prod.yml` and `src/.env` to the machine

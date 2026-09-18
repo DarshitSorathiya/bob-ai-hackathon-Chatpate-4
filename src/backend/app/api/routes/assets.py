@@ -57,6 +57,35 @@ def create_asset(
     if existing:
         return make_error("ASSET_EXISTS", f"Asset code '{body.asset_code}' already exists.", rid)
     asset = _asset_repo.create(db, body.model_dump())
+    component = _comp_repo.create(db, {
+        "asset_id": asset.id,
+        "component_code": f"{asset.asset_code}-ENGINE",
+        "component_type": "ENGINE_CORE",
+        "name": f"{asset.asset_code} Engine Core",
+        "mtbf_hours": 12000.0,
+    })
+    _sensor_repo.create(db, {
+        "asset_id": asset.id,
+        "component_id": component.id,
+        "sensor_code": f"{asset.asset_code}-TEMP",
+        "sensor_type": "TEMPERATURE",
+        "unit": "°C",
+        "nominal_min": 20.0,
+        "nominal_max": 120.0,
+        "critical_min": 0.0,
+        "critical_max": 160.0,
+    })
+    _sensor_repo.create(db, {
+        "asset_id": asset.id,
+        "component_id": component.id,
+        "sensor_code": f"{asset.asset_code}-VIB",
+        "sensor_type": "VIBRATION",
+        "unit": "mm/s",
+        "nominal_min": 0.0,
+        "nominal_max": 12.0,
+        "critical_min": 0.0,
+        "critical_max": 25.0,
+    })
     _audit.log(db, action="asset.create", user_id=current_user.id,
                resource_type="asset", resource_id=str(asset.id), request_id=rid)
     db.commit()

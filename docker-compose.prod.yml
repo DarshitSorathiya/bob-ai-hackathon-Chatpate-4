@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: missionready
-      POSTGRES_PASSWORD: missionready_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for deployment}
       POSTGRES_DB: missionready
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -34,7 +34,7 @@ services:
     env_file:
       - ./src/.env
     environment:
-      DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
+      DATABASE_URL: postgresql+psycopg://missionready:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for deployment}@db:5432/missionready
     depends_on:
       db:
         condition: service_healthy
@@ -44,25 +44,38 @@ services:
   backend:
     image: ${DOCKERHUB_USERNAME}/missionready-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     env_file:
       - ./src/.env
     environment:
-      DATABASE_URL: postgresql+psycopg://missionready:missionready_dev_password@db:5432/missionready
-      CORS_ORIGINS: "http://localhost:3000,http://frontend:3000"
+      DATABASE_URL: postgresql+psycopg://missionready:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for deployment}@db:5432/missionready
+      CORS_ORIGINS: ${FRONTEND_ORIGIN:?Set FRONTEND_ORIGIN for deployment}
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
+  # ─── Background telemetry/inference worker ────────────────────────────────
+  worker:
+    image: ${DOCKERHUB_USERNAME}/missionready-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - ./src/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://missionready:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for deployment}@db:5432/missionready
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: python scripts/run_worker.py --interval 60
+
   # ─── Next.js frontend ─────────────────────────────────────────────────────
   frontend:
     image: ${DOCKERHUB_USERNAME}/missionready-frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - backend
 

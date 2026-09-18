@@ -80,14 +80,8 @@ export default function DataQualityPage() {
 
   const applyFilter = (setter, value) => { setPage(0); setter(value); };
 
-  const defaultEvents = [
-    { id: '1', severity: 'critical', issue_type: 'sensor_fault', asset_code: 'A-102', sensor_code: 'HUMS-VIB-01', description: 'Sensor output frozen at peak 1.25g voltage value.', created_at: new Date(Date.now() - 3600000 * 3).toISOString() },
-    { id: '2', severity: 'warning', issue_type: 'out_of_range', asset_code: 'B-047', sensor_code: 'TEMP-EXH-02', description: 'Temperature reading spiked above expected limit range.', created_at: new Date(Date.now() - 3600000 * 5).toISOString() },
-    { id: '3', severity: 'info', issue_type: 'sampling_rate_anomaly', asset_code: 'C-018', sensor_code: 'TACH-ENG-03', description: 'Minor packet delay in 100Hz telemetry stream.', created_at: new Date(Date.now() - 3600000 * 8).toISOString() },
-  ];
-
-  const displayEvents = events.length > 0 ? events : defaultEvents;
-  const displaySummary = summary || { total: 14, critical: 2, warning: 5, info: 7, sensor_faults: 3, stale_data: 2 };
+  const displayEvents = events;
+  const displaySummary = summary || { total: 0, critical: 0, warning: 0, info: 0, sensor_faults: 0, stale_data: 0 };
 
   return (
     <NavBar title="Data Quality" onBack={() => router.push('/dashboard')}>
@@ -158,7 +152,9 @@ export default function DataQualityPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {displayEvents.map((evt) => {
+            {displayEvents.length === 0 ? (
+              <p className="py-12 text-center text-xs font-mono text-slate-500">No data quality events found.</p>
+            ) : displayEvents.map((evt) => {
               const sev = ISSUE_SEVERITY[evt.severity] || ISSUE_SEVERITY.info;
               return (
                 <div

@@ -94,9 +94,11 @@ def build_X_y(
     if label_key == "timestamp" or label_key not in labs.columns:
         label_key = "timestamp"
 
-    # Stringify timestamps for a safe merge
-    feats["_join_ts"] = feats["recorded_at"].astype(str).str[:19]
-    labs["_join_ts"] = labs["timestamp"].astype(str).str[:19]
+    # Normalize timestamp representations before joining. Parquet-backed
+    # features may use a datetime with a space separator, while labels are
+    # emitted as ISO strings with a ``T`` separator.
+    feats["_join_ts"] = pd.to_datetime(feats["recorded_at"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%S")
+    labs["_join_ts"] = pd.to_datetime(labs["timestamp"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%S")
 
     merged = feats.merge(
         labs[["component_id", "_join_ts", label_col]],
@@ -133,7 +135,13 @@ def impute(
     Returns (X_train_imp, X_val_imp, X_test_imp, imputer).
     Val and test are None if not provided.
     """
-    imp = SimpleImputer(strategy=strategy)
+    # Keep columns that are empty in one asset split. Sensor-specific feature
+    # columns are legitimately absent for other asset types; dropping them
+    # here changes the registered feature schema and breaks inference.
+    try:
+        imp = SimpleImputer(strategy=strategy, keep_empty_features=True)
+    except TypeError:  # compatibility with older scikit-learn releases
+        imp = SimpleImputer(strategy=strategy)
     X_tr = pd.DataFrame(
         imp.fit_transform(X_train),
         columns=X_train.columns,

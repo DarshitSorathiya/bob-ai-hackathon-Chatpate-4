@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, RefreshCw, ChevronRight, Plane, Shield, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Search, RefreshCw, ChevronRight, Plane, Shield, AlertTriangle, CheckCircle2, Plus, X } from 'lucide-react';
 import NavBar from '../../components/NavBar';
-import { isAuthenticated, listAssets, getAllReadiness } from '../../lib/api';
+import { isAuthenticated, listAssets, getAllReadiness, createAsset } from '../../lib/api';
 
 function StatusBadge({ status }) {
   const map = {
@@ -29,6 +29,9 @@ export default function AssetsPage() {
   const [loading, setLoading]           = useState(true);
   const [search, setSearch]             = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ asset_code: '', asset_type: 'HELICOPTER', call_sign: '', manufacturer: '', model_number: '' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) { router.replace('/login'); return; }
@@ -48,6 +51,19 @@ export default function AssetsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const submitAsset = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await createAsset({ ...form, asset_code: form.asset_code.trim().toUpperCase(), call_sign: form.call_sign.trim() || undefined, manufacturer: form.manufacturer.trim() || undefined, model_number: form.model_number.trim() || undefined });
+      setForm({ asset_code: '', asset_type: 'HELICOPTER', call_sign: '', manufacturer: '', model_number: '' });
+      setShowCreate(false);
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filtered = assets.filter((a) => {
     const q = search.toLowerCase();
     const matchSearch = !search
@@ -59,9 +75,9 @@ export default function AssetsPage() {
     return matchSearch && matchStatus;
   });
 
-  const readyCount = assets.filter((a) => (readinessMap[a.id]?.status || 'READY') === 'READY').length || 18;
-  const atRiskCount = assets.filter((a) => readinessMap[a.id]?.status === 'AT_RISK').length || 4;
-  const notReadyCount = assets.filter((a) => readinessMap[a.id]?.status === 'NOT_READY').length || 3;
+  const readyCount = assets.filter((a) => readinessMap[a.id]?.status === 'READY').length;
+  const atRiskCount = assets.filter((a) => readinessMap[a.id]?.status === 'AT_RISK').length;
+  const notReadyCount = assets.filter((a) => readinessMap[a.id]?.status === 'NOT_READY').length;
 
   return (
     <NavBar title="Fleet Assets">
@@ -79,20 +95,35 @@ export default function AssetsPage() {
               Overview of all registered defense & aerospace assets, health telemetry, and status summary.
             </p>
           </div>
-          <div className="flex items-center gap-3 dashboard-card-shape px-4 py-2 rounded-xl">
-            <span className="text-xs font-mono text-slate-300 font-bold">{filtered.length} of {assets.length || 25} Assets</span>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold text-blue-300 border border-blue-500/30 rounded-xl bg-blue-600/20"><Plus className="w-4 h-4" /> Add craft</button>
+            <div className="flex items-center gap-3 dashboard-card-shape px-4 py-2 rounded-xl">
+            <span className="text-xs font-mono text-slate-300 font-bold">{filtered.length} of {assets.length} Assets</span>
             <button onClick={load} className="text-slate-400 hover:text-slate-100 p-1 transition-colors" title="Refresh">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-400' : ''}`} />
             </button>
+            </div>
           </div>
         </div>
+
+        {showCreate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
+            <form onSubmit={submitAsset} className="w-full max-w-lg dashboard-card-shape rounded-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between"><h2 className="text-sm font-bold font-mono">Register Craft</h2><button type="button" onClick={() => setShowCreate(false)}><X className="w-4 h-4" /></button></div>
+              <input required placeholder="Asset code" value={form.asset_code} onChange={(e) => setForm({ ...form, asset_code: e.target.value })} className="w-full px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg" />
+              <select value={form.asset_type} onChange={(e) => setForm({ ...form, asset_type: e.target.value })} className="w-full px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg"><option>HELICOPTER</option><option>FIXED_WING</option><option>GROUND_VEHICLE</option><option>UAV</option></select>
+              {['call_sign', 'manufacturer', 'model_number'].map((field) => <input key={field} placeholder={field.replace('_', ' ')} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })} className="w-full px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg" />)}
+              <button disabled={saving} className="w-full px-4 py-2.5 text-xs font-mono font-bold bg-blue-600 rounded-xl disabled:opacity-50">{saving ? 'Registering...' : 'Register craft'}</button>
+            </form>
+          </div>
+        )}
 
         {/* 4 Metric Summary Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="dashboard-card-shape p-4 rounded-2xl flex items-center justify-between">
             <div>
               <p className="text-xs font-mono text-slate-400">Total Fleet Assets</p>
-              <p className="text-2xl font-extrabold font-mono text-slate-100 mt-1">{assets.length || 25}</p>
+              <p className="text-2xl font-extrabold font-mono text-slate-100 mt-1">{assets.length}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Shield className="w-5 h-5" />
@@ -203,7 +234,7 @@ export default function AssetsPage() {
                       <td className="px-4 py-3.5 text-slate-300 hidden lg:table-cell font-mono">{asset.total_hours?.toFixed(0) ?? '1420'} h</td>
                       <td className="px-4 py-3.5"><StatusBadge status={status} /></td>
                       <td className="px-4 py-3.5 font-mono text-slate-400 hidden sm:table-cell">
-                        {rec?.confidence != null ? `${Math.round(rec.confidence * 100)}%` : '94%'}
+                        {rec?.confidence != null ? `${Math.round(rec.confidence * 100)}%` : '—'}
                       </td>
                       <td className="px-4 py-3.5 text-slate-500"><ChevronRight className="w-4 h-4" /></td>
                     </tr>

@@ -157,6 +157,13 @@ export function getHealth() {
   return request('/health');
 }
 
+export function ingestTelemetry(readings, refresh_predictions = true) {
+  return request('/telemetry/batch', {
+    method: 'POST',
+    body: JSON.stringify({ readings, refresh_predictions }),
+  });
+}
+
 // ─── Assets API ───────────────────────────────────────────────────────────────
 
 export function listAssets(params = {}) {
