@@ -323,7 +323,6 @@ export default function MissionDetailPage() {
   const transitions = STATUS_TRANSITIONS[mission.status] || [];
 
   return (
-  return (
     <NavBar title={`Missions / ${mission.mission_code}`} onBack={() => router.push('/missions')}>
       {showAssign && (
         <AssignAssetModal
@@ -335,7 +334,7 @@ export default function MissionDetailPage() {
 
       <div className="space-y-6">
         {/* Header Box */}
-        <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-6 backdrop-blur-xl shadow-xl">
+        <div className="dashboard-card-shape rounded-2xl p-6 backdrop-blur-xl shadow-xl">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-3 flex-wrap mb-1">
@@ -400,7 +399,7 @@ export default function MissionDetailPage() {
 
         {/* Requirements Box */}
         {mission.requirements?.length > 0 && (
-          <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-6 backdrop-blur-xl shadow-xl">
+          <div className="dashboard-card-shape rounded-2xl p-6 backdrop-blur-xl shadow-xl">
             <p className="text-xs font-bold font-mono text-slate-300 uppercase mb-3">Capability Requirements</p>
             <div className="flex flex-wrap gap-2.5">
               {mission.requirements.map((r) => (
@@ -422,7 +421,7 @@ export default function MissionDetailPage() {
             <p className="text-xs font-bold font-mono text-slate-300 uppercase">Readiness Evaluation</p>
             <button
               onClick={() => setShowAssign(true)}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-blue-300 hover:text-blue-200 border-[3px] border-white rounded-xl bg-[#0a0f1d]/80 shadow-md backdrop-blur-xl transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-blue-300 hover:text-blue-200 border border-blue-500/30 rounded-xl bg-blue-600/20 shadow-md backdrop-blur-xl transition-all"
             >
               <Plus className="w-3.5 h-3.5" /> Assign Asset
             </button>
@@ -430,7 +429,7 @@ export default function MissionDetailPage() {
           {readiness ? (
             <ReadinessPanel readiness={readiness} onEvaluate={handleEvaluate} evaluating={evaluating} />
           ) : (
-            <div className="bg-[#0a0f1d]/80 border-[3px] border-white rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
+            <div className="dashboard-card-shape rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
               <p className="text-slate-400 font-mono text-sm">No readiness evaluation yet.</p>
               <button
                 onClick={handleEvaluate}
