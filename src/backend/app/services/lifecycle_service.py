@@ -21,7 +21,16 @@ class FleetLifecycleService:
         self.telemetry_repo = TelemetryRepository()
         self.inference_service = InferenceService()
 
-    def tick(self, db: Session, interval_hours: float = 1.0) -> dict[str, int]:
+    def tick(self, db: Session, simulation_hours: float = 1.0) -> dict[str, int | float]:
+        """Advance the fleet by a logical time interval.
+
+        ``simulation_hours`` is deliberately explicit: production can pass
+        wall-clock elapsed hours, while the demo worker can advance one
+        simulated hour per tick.  Every resulting record gets a monotonic
+        logical timestamp, so rolling time-series features evolve correctly.
+        """
+        if simulation_hours <= 0:
+            raise ValueError("simulation_hours must be positive")
         now = datetime.now(timezone.utc)
         self._advance_missions(db, now)
         assets = list(db.scalars(select(Asset).where(Asset.is_active.is_(True))))
@@ -29,12 +38,18 @@ class FleetLifecycleService:
         refreshed = 0
 
         for asset in assets:
-            asset.total_hours = float(asset.total_hours or 0.0) + interval_hours
+            asset.total_hours = float(asset.total_hours or 0.0) + simulation_hours
             sensors = list(db.scalars(select(Sensor).where(
                 Sensor.asset_id == asset.id,
                 Sensor.is_active.is_(True),
             )))
-            rows = [self._reading(asset, sensor, now) for sensor in sensors]
+            latest = self.telemetry_repo.get_latest_for_asset(db, asset.id)
+            logical_now = (
+                latest.recorded_at.replace(tzinfo=timezone.utc)
+                if latest and latest.recorded_at.tzinfo is None
+                else latest.recorded_at if latest else now
+            ) + timedelta(hours=simulation_hours)
+            rows = [self._reading(asset, sensor, logical_now) for sensor in sensors]
             if rows:
                 self.telemetry_repo.create_many(db, rows)
                 generated += len(rows)
@@ -46,7 +61,10 @@ class FleetLifecycleService:
                 db.rollback()
 
         db.commit()
-        return {"assets": len(assets), "telemetry": generated, "refreshed": refreshed}
+        return {
+            "assets": len(assets), "telemetry": generated, "refreshed": refreshed,
+            "simulation_hours": simulation_hours,
+        }
 
     def _advance_missions(self, db: Session, now: datetime) -> None:
         missions = list(db.scalars(select(Mission)))

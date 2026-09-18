@@ -166,7 +166,9 @@ def parse_rul_file(path: Path) -> pd.Series:
     """Read an RUL_FDxxx.txt file into a Series (one value per test unit)."""
     if not path.exists():
         raise FileNotFoundError(f"C-MAPSS RUL file not found: {path}")
-    values = pd.read_csv(path, header=None, squeeze=False).iloc[:, 0]
+    # ``squeeze`` was removed in pandas 2.0.  Selecting the first column is
+    # explicit and works across supported pandas versions.
+    values = pd.read_csv(path, header=None).iloc[:, 0]
     return pd.Series(values.values, name="true_rul_at_cutoff", dtype="float32")
 
 

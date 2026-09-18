@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, require_roles
+from app.core.roles import ADMIN, MAINTAINER
 from app.core.responses import make_response
 from app.models.fleet import Asset, Component, Sensor
 from app.repositories.telemetry_repository import TelemetryRepository
@@ -17,7 +18,11 @@ _telemetry_repo = TelemetryRepository()
 _inference_service = InferenceService()
 
 
-@router.post("/batch", summary="Ingest telemetry and refresh predictions")
+@router.post(
+    "/batch",
+    summary="Ingest telemetry and refresh predictions",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def ingest_batch(
     request: Request,
     db: DbSession,

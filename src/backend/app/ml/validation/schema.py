@@ -103,16 +103,18 @@ CMAPSS_REQUIRED_COLS = {
 CMAPSS_SENSOR_RANGES: dict[str, tuple[float, float]] = {
     # (min_plausible, max_plausible) — loose bounds to catch gross errors
     "sensor_2":  (440.0,  650.0),   # LPC outlet temp (°R)
-    "sensor_3":  (850.0, 1400.0),   # HPC outlet temp (°R)
-    "sensor_4":  (1100.0, 1650.0),  # LPT outlet temp (°R)
-    "sensor_7":  (250.0,  680.0),   # HPC outlet pressure (psia)
+    # FD002/FD004 contain six operating regimes, so their valid envelope is
+    # wider than the single-regime FD001/FD003 subsets.
+    "sensor_3":  (1200.0, 1700.0),  # HPC outlet temperature (°R)
+    "sensor_4":  (1000.0, 1700.0),  # LPT outlet temp (°R)
+    "sensor_7":  (100.0,  700.0),   # HPC outlet pressure (psia)
     "sensor_8":  (1800.0, 2600.0),  # Physical fan speed (rpm)
     "sensor_9":  (7800.0, 9500.0),  # Physical core speed (rpm)
     "sensor_11": (3.0,    50.0),    # Static pressure at HPC (psia)
-    "sensor_12": (150.0,  450.0),   # Fuel flow / Ps30
+    "sensor_12": (100.0,  700.0),   # Fuel flow / Ps30
     "sensor_17": (300.0,  400.0),   # Bleed enthalpy
-    "sensor_20": (350.0,  500.0),   # HPT coolant bleed (lbm/s)
-    "sensor_21": (100.0,  300.0),   # LPT coolant bleed (lbm/s)
+    "sensor_20": (5.0,    65.0),    # HPT coolant bleed (lbm/s)
+    "sensor_21": (5.0,    55.0),    # LPT coolant bleed (lbm/s)
 }
 
 
@@ -122,8 +124,14 @@ def validate_cmapss_features(
     split: str,
     subset: str,
     expected_min_units: int | None = None,
+    enforce_physical_ranges: bool = False,
 ) -> ValidationReport:
-    """Run all validation checks on a C-MAPSS feature+label pair."""
+    """Run schema and leakage checks on a C-MAPSS feature/label pair.
+
+    Physical ranges are calibration-specific, not a universal schema rule.
+    Canonical NASA C-MAPSS imports must enable strict range enforcement;
+    generic import validation retains any deviations as warnings.
+    """
     results: list[ValidationResult] = []
     dataset = f"cmapss_{subset}"
 
@@ -214,10 +222,14 @@ def validate_cmapss_features(
             )
             range_pass = False
     results.append(ValidationResult(
-        passed=range_pass,
+        passed=range_pass or not enforce_physical_ranges,
         check_name="sensor_ranges",
         details="All sensor values within plausible physical ranges" if range_pass
-                else f"{len(range_warnings)} sensor(s) out of range",
+                else (
+                    f"{len(range_warnings)} sensor(s) out of range"
+                    if enforce_physical_ranges
+                    else f"{len(range_warnings)} sensor(s) outside C-MAPSS calibration envelope"
+                ),
         warnings=range_warnings,
     ))
 

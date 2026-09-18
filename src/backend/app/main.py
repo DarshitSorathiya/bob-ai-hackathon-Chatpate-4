@@ -30,7 +30,12 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info("startup", app=settings.app_name, env=settings.app_env)
-    create_tables()
+    # Production schema changes are exclusively owned by Alembic.  Running
+    # create_all at application startup silently bypasses migrations and can
+    # leave a live database at an untracked schema version.  Keep the
+    # convenience only for local development and tests.
+    if settings.is_development:
+        create_tables()
     yield
     logger.info("shutdown")
 

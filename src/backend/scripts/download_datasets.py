@@ -47,6 +47,8 @@ RAW_IMS    = REPO_ROOT / "src" / "backend" / "data" / "raw" / "ims"
 # Some mirrors may host slightly different encodings; treat checksum mismatch
 # as a warning rather than a hard failure so the user can supply the file manually.
 
+CMAPSS_MIRROR = "https://raw.githubusercontent.com/edwardzjl/CMAPSSData/master"
+
 CMAPSS_FILES: list[dict] = [
     # Primary mirror: Kaggle dataset "behrad3d/nasa-cmaps" (public, no login required)
     # The NASA PCoe site requires a form submission; Kaggle provides identical files.
@@ -54,62 +56,62 @@ CMAPSS_FILES: list[dict] = [
     # https://data.nasa.gov/Aerospace/CMAPSS-Jet-Engine-Simulated-Data/ff5v-kuh6
     {
         "filename": "train_FD001.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/train_FD001.txt",
+        "url": f"{CMAPSS_MIRROR}/train_FD001.txt",
         "sha256": None,  # checksum verified at parse time via shape checks
     },
     {
         "filename": "test_FD001.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/test_FD001.txt",
+        "url": f"{CMAPSS_MIRROR}/test_FD001.txt",
         "sha256": None,
     },
     {
         "filename": "RUL_FD001.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/RUL_FD001.txt",
+        "url": f"{CMAPSS_MIRROR}/RUL_FD001.txt",
         "sha256": None,
     },
     {
         "filename": "train_FD002.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/train_FD002.txt",
+        "url": f"{CMAPSS_MIRROR}/train_FD002.txt",
         "sha256": None,
     },
     {
         "filename": "test_FD002.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/test_FD002.txt",
+        "url": f"{CMAPSS_MIRROR}/test_FD002.txt",
         "sha256": None,
     },
     {
         "filename": "RUL_FD002.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/RUL_FD002.txt",
+        "url": f"{CMAPSS_MIRROR}/RUL_FD002.txt",
         "sha256": None,
     },
     {
         "filename": "train_FD003.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/train_FD003.txt",
+        "url": f"{CMAPSS_MIRROR}/train_FD003.txt",
         "sha256": None,
     },
     {
         "filename": "test_FD003.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/test_FD003.txt",
+        "url": f"{CMAPSS_MIRROR}/test_FD003.txt",
         "sha256": None,
     },
     {
         "filename": "RUL_FD003.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/RUL_FD003.txt",
+        "url": f"{CMAPSS_MIRROR}/RUL_FD003.txt",
         "sha256": None,
     },
     {
         "filename": "train_FD004.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/train_FD004.txt",
+        "url": f"{CMAPSS_MIRROR}/train_FD004.txt",
         "sha256": None,
     },
     {
         "filename": "test_FD004.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/test_FD004.txt",
+        "url": f"{CMAPSS_MIRROR}/test_FD004.txt",
         "sha256": None,
     },
     {
         "filename": "RUL_FD004.txt",
-        "url": "https://raw.githubusercontent.com/Samimust/predictive-maintenance/master/CMAPSSData/RUL_FD004.txt",
+        "url": f"{CMAPSS_MIRROR}/RUL_FD004.txt",
         "sha256": None,
     },
 ]

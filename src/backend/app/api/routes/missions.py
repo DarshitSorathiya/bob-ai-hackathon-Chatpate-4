@@ -7,10 +7,11 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, require_roles
 from app.core.responses import make_error, make_response
+from app.core.roles import ADMIN, MAINTAINER
 from app.ml.mission import MissionEngine
 from app.ml.mission.models import AssetCapability, CapabilityRequirement as MLCapReq, MissionInput
 from app.repositories.operations_repository import (
@@ -43,7 +44,12 @@ def list_missions(
     return make_response([MissionResponse.model_validate(m).model_dump() for m in missions], rid)
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create mission")
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create mission",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def create_mission(
     request: Request,
     db: DbSession,
@@ -84,7 +90,11 @@ def get_mission(
     return make_response(MissionResponse.model_validate(mission).model_dump(), rid)
 
 
-@router.patch("/{mission_id}", summary="Update mission status/details")
+@router.patch(
+    "/{mission_id}",
+    summary="Update mission status/details",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def update_mission(
     request: Request,
     db: DbSession,
@@ -113,7 +123,12 @@ def update_mission(
     return make_response(MissionResponse.model_validate(updated).model_dump(), rid)
 
 
-@router.post("/{mission_id}/assignments", status_code=status.HTTP_201_CREATED, summary="Assign asset to mission")
+@router.post(
+    "/{mission_id}/assignments",
+    status_code=status.HTTP_201_CREATED,
+    summary="Assign asset to mission",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def assign_asset(
     request: Request,
     db: DbSession,

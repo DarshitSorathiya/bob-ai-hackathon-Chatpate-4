@@ -28,6 +28,7 @@ from app.repositories.operations_repository import (
     WorkOrderRepository,
     DataQualityRepository,
 )
+from app.repositories.telemetry_repository import TelemetryRepository
 
 
 class ReadinessService:
@@ -47,6 +48,7 @@ class ReadinessService:
         self._wo_repo = WorkOrderRepository()
         self._readiness_repo = ReadinessRepository()
         self._dq_repo = DataQualityRepository()
+        self._telemetry_repo = TelemetryRepository()
 
     def evaluate_asset(
         self,
@@ -54,6 +56,7 @@ class ReadinessService:
         asset_id: uuid.UUID,
         mission_id: uuid.UUID | None = None,
         mission_duration_hours: float = 0.0,
+        commit: bool = True,
     ) -> ReadinessOutput:
         """Evaluate readiness for one asset and persist the result.
 
@@ -62,6 +65,10 @@ class ReadinessService:
             asset_id:               Asset to evaluate.
             mission_id:             Optional mission context.
             mission_duration_hours: Duration of the mission window in hours.
+            commit:                 Commit the transaction after persistence.
+                                    Route/service workflows that compose
+                                    multiple writes should pass ``False`` and
+                                    commit atomically at their boundary.
 
         Returns:
             ReadinessOutput from the deterministic engine.
@@ -111,11 +118,24 @@ class ReadinessService:
         observation_count = latest_pred.observation_count if latest_pred else None
 
         # --- Telemetry freshness ---
-        # Approximate from latest prediction timestamp
+        # Freshness must be based on when the aircraft was actually observed.
+        # A worker can re-run an old prediction at any time; that must not make
+        # stale telemetry look current.
         hours_since_last_reading: float | None = None
-        if latest_pred:
-            delta = datetime.now(timezone.utc) - latest_pred.predicted_at.replace(tzinfo=timezone.utc)
+        latest_reading = self._telemetry_repo.get_latest_for_asset(db, asset_id)
+        if latest_reading:
+            recorded_at = latest_reading.recorded_at
+            if recorded_at.tzinfo is None:
+                recorded_at = recorded_at.replace(tzinfo=timezone.utc)
+            delta = datetime.now(timezone.utc) - recorded_at
             hours_since_last_reading = delta.total_seconds() / 3600.0
+
+        # Prediction metadata may be absent while telemetry exists (for
+        # example, during the model warm-up window).  Report the real number
+        # of observations instead of treating that as no data at all.
+        telemetry_count = len(self._telemetry_repo.list_for_asset(db, asset_id))
+        if observation_count is None:
+            observation_count = telemetry_count
 
         # --- Data quality events ---
         dq_events = self._dq_repo.list(db, asset_id=asset_id, is_resolved=False, limit=50)
@@ -169,7 +189,10 @@ class ReadinessService:
             "mission_id": mission_id,
             "evaluated_at": output.evaluated_at,
         })
-        db.commit()
+        if commit:
+            db.commit()
+        else:
+            db.flush()
 
         return output
 

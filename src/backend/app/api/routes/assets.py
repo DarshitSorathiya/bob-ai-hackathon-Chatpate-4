@@ -19,6 +19,7 @@ from app.repositories.fleet_repository import AssetRepository, ComponentReposito
 from app.repositories.operations_repository import AlertRepository, PredictionRepository, ReadinessRepository
 from app.schemas.fleet import AssetCreate, AssetResponse, AssetUpdate, ComponentCreate, ComponentResponse, SensorResponse
 from app.schemas.operations import AlertResponse, AssetReadinessResponse, ContributingFactorResponse, PredictionResponse
+from app.services.readiness_service import ReadinessService
 
 router = APIRouter(prefix="/assets", tags=["assets"])
 
@@ -29,6 +30,7 @@ _pred_repo = PredictionRepository()
 _alert_repo = AlertRepository()
 _readiness_repo = ReadinessRepository()
 _audit = AuditLogger()
+_readiness_service = ReadinessService()
 
 
 @router.get("", summary="List all active assets")
@@ -86,6 +88,10 @@ def create_asset(
         "critical_min": 0.0,
         "critical_max": 25.0,
     })
+    # New aircraft start as UNKNOWN, never implicitly mission-ready.  The
+    # lifecycle worker (or telemetry batch endpoint) will build the time-series
+    # history and then invoke the registered models automatically.
+    _readiness_service.evaluate_asset(db, asset.id, commit=False)
     _audit.log(db, action="asset.create", user_id=current_user.id,
                resource_type="asset", resource_id=str(asset.id), request_id=rid)
     db.commit()
@@ -141,7 +147,12 @@ def list_components(
     return make_response([ComponentResponse.model_validate(c).model_dump() for c in comps], rid)
 
 
-@router.post("/{asset_id}/components", status_code=status.HTTP_201_CREATED, summary="Add component to asset")
+@router.post(
+    "/{asset_id}/components",
+    status_code=status.HTTP_201_CREATED,
+    summary="Add component to asset",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def create_component(
     request: Request,
     db: DbSession,

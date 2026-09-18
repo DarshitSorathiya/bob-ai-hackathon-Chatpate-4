@@ -151,7 +151,11 @@ class CopilotService:
 
         # Call LLM — try watsonx, fall back to Groq, else unavailable
         settings = get_settings()
-        answer, model_used = self._call_llm(question, context, settings)
+        if settings.copilot_llm_enabled:
+            answer, model_used = self._call_llm(question, context, settings)
+        else:
+            answer = self._evidence_only_answer(evidence)
+            model_used = None
 
         return CopilotResponse(
             query=question,
@@ -159,6 +163,23 @@ class CopilotService:
             evidence=evidence,
             model_used=model_used,
             grounded=True,
+        )
+
+    @staticmethod
+    def _evidence_only_answer(evidence: list[ToolResult]) -> str:
+        """Return deterministic guidance without inferring beyond evidence."""
+        if not evidence:
+            return "No operational evidence is available for this request."
+        failed = [item.tool_name for item in evidence if item.error]
+        if failed:
+            return (
+                "Some requested evidence could not be retrieved "
+                f"({', '.join(failed)}). Review the returned records before acting."
+            )
+        return (
+            "This response is evidence-only. Review the returned records for current "
+            "telemetry, predictions, maintenance state, and deterministic readiness reasons. "
+            "Do not treat this endpoint as a readiness decision."
         )
 
     # ------------------------------------------------------------------

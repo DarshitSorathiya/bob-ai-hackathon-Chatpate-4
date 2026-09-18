@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     # Groq (optional — fallback LLM if watsonx.ai is unavailable)
     groq_api_key: str | None = None
     groq_model: str = "compound-beta"
+    copilot_llm_enabled: bool = False
 
     # Logging
     log_level: str = "INFO"

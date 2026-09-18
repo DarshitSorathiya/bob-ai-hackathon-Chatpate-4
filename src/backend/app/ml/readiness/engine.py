@@ -216,19 +216,26 @@ class ReadinessEngine:
             ))
 
         # --- R7a: No prediction available ------------------------------------
-        if (
-            inp.failure_probability is None
-            and inp.rul_hours is None
-            and inp.anomaly_score is None
-        ):
+        missing_prediction_types = [
+            name for name, value in (
+                ("failure risk", inp.failure_probability),
+                ("remaining useful life", inp.rul_hours),
+            )
+            if value is None
+        ]
+        if missing_prediction_types:
             unknown_factors.append(ContributingFactor(
                 code=ReasonCode.NO_PREDICTION_AVAILABLE,
                 message=(
-                    f"No ML prediction record exists for asset {inp.asset_code}. "
-                    "Cannot assess failure risk or RUL."
+                    f"Required ML prediction(s) missing for asset {inp.asset_code}: "
+                    f"{', '.join(missing_prediction_types)}. "
+                    "Cannot establish mission readiness."
                 ),
                 severity="warning",
-                evidence={"asset_id": inp.asset_id},
+                evidence={
+                    "asset_id": inp.asset_id,
+                    "missing_prediction_types": missing_prediction_types,
+                },
             ))
 
         # --- R7b: Insufficient observations ----------------------------------

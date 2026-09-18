@@ -323,14 +323,15 @@ class TestUnknownRules:
         assert out.status == ReadinessStatus.UNKNOWN
         assert out.primary_reason == ReasonCode.NO_PREDICTION_AVAILABLE
 
-    def test_r7a_partial_prediction_does_not_trigger_r7a(self, engine):
-        """If any prediction value exists, R7a should not fire."""
+    def test_r7a_partial_prediction_is_unknown_for_operational_safety(self, engine):
+        """Readiness fails closed unless both RUL and failure risk are present."""
         out = engine.evaluate(_base_input(
             failure_probability=0.05,
             rul_hours=None,
             anomaly_score=None,
         ))
-        assert ReasonCode.NO_PREDICTION_AVAILABLE not in _reason_codes(out)
+        assert out.status == ReadinessStatus.UNKNOWN
+        assert ReasonCode.NO_PREDICTION_AVAILABLE in _reason_codes(out)
 
     # --- R7b: Insufficient observations ------------------------------------
     def test_r7b_few_observations_returns_unknown(self, engine):

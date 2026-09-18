@@ -56,7 +56,7 @@ EXPECTED_UNITS: dict[str, dict[str, int]] = {
     "FD001": {"train": 100, "test": 100},
     "FD002": {"train": 260, "test": 259},
     "FD003": {"train": 100, "test": 100},
-    "FD004": {"train": 248, "test": 249},
+    "FD004": {"train": 249, "test": 248},
 }
 
 
@@ -92,6 +92,7 @@ def process_subset(
             split=split,
             subset=subset,
             expected_min_units=expected_min,
+            enforce_physical_ranges=True,
         )
         log.info(report.summary())
         try:

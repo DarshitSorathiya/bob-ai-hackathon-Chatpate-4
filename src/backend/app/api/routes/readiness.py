@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, require_roles
+from app.core.roles import ADMIN, MAINTAINER
 from app.core.responses import make_response
 from app.repositories.operations_repository import ReadinessRepository
 from app.services.readiness_service import ReadinessService
@@ -30,7 +31,11 @@ def fleet_readiness_summary(
     return make_response(summary, rid)
 
 
-@router.post("/evaluate/{asset_id}", summary="Trigger readiness evaluation for an asset")
+@router.post(
+    "/evaluate/{asset_id}",
+    summary="Trigger readiness evaluation for an asset",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def evaluate_asset_readiness(
     request: Request,
     db: DbSession,

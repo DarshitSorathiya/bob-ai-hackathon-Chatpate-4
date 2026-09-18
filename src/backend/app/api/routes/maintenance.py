@@ -62,7 +62,12 @@ def list_work_orders(
     return make_response([WorkOrderResponse.model_validate(w).model_dump() for w in wos], rid)
 
 
-@router.post("/work-orders", status_code=status.HTTP_201_CREATED, summary="Create work order")
+@router.post(
+    "/work-orders",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create work order",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def create_work_order(
     request: Request,
     db: DbSession,
@@ -95,7 +100,11 @@ def get_work_order(
     return make_response(WorkOrderResponse.model_validate(wo).model_dump(), rid)
 
 
-@router.patch("/work-orders/{wo_id}", summary="Update work order")
+@router.patch(
+    "/work-orders/{wo_id}",
+    summary="Update work order",
+    dependencies=[Depends(require_roles(MAINTAINER, ADMIN))],
+)
 def update_work_order(
     request: Request,
     db: DbSession,
