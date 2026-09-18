@@ -3024,8 +3024,8 @@ body {
     align-items: flex-start;
   }
 
-  .md\:gap-5 {
-    gap: 1.25rem;
+  .md\:gap-4 {
+    gap: 1rem;
   }
 
   .md\:self-auto {

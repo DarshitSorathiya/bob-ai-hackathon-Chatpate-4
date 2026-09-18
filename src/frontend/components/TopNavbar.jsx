@@ -9,7 +9,7 @@ import { getUser, clearSession } from '../lib/api';
 /**
  * Top Navbar matching Image 1:
  * Left: Shield Icon + MISSIONREADY
- * Center: Spaced Navigation Tabs (Dashboard, Fleet, Maintenance, Alerts, Sessions)
+ * Center: Spaced Navigation Tabs (Dashboard, Fleet, Maintenance, Alerts, Sessions, Copilot)
  * Right: User Avatar + Welcome, Tulsi + Dropdown Chevron
  */
 export default function TopNavbar() {
@@ -33,6 +33,7 @@ export default function TopNavbar() {
     { href: '/maintenance', label: 'Maintenance' },
     { href: '/alerts', label: 'Alerts' },
     { href: '/missions', label: 'Sessions' },
+    { href: '/copilot', label: 'Copilot' },
   ];
 
   const firstName = user?.full_name?.split(' ')[0] || 'Tulsi';
@@ -53,15 +54,15 @@ export default function TopNavbar() {
         </span>
       </Link>
 
-      {/* Center Navigation Tabs with Generous Spacing matching Picture 1 */}
-      <nav className="flex items-center gap-3 md:gap-5 bg-[#070f22]/80 px-3 py-1.5 rounded-full border border-blue-900/40 shadow-inner">
+      {/* Center Navigation Tabs with Spacing */}
+      <nav className="flex items-center gap-2 md:gap-4 bg-[#070f22]/80 px-3 py-1.5 rounded-full border border-blue-900/40 shadow-inner">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`px-5 py-2 rounded-full text-xs font-mono transition-all duration-200 tracking-wide ${
+              className={`px-4 py-2 rounded-full text-xs font-mono transition-all duration-200 tracking-wide ${
                 isActive
                   ? 'bg-[#122448] text-blue-300 font-bold border border-blue-500/50 shadow-md shadow-blue-500/20'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'

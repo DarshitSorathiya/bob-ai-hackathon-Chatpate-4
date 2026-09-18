@@ -11,36 +11,36 @@ export default function HomePage() {
     if (isTransitioning) return;
     setIsTransitioning(true);
 
-    // Smooth flight transition duration (1.35 seconds) then navigate reliably
+    // Fast flight transition duration (300ms) then navigate immediately
     setTimeout(() => {
       window.location.href = route;
-    }, 1350);
+    }, 300);
   };
 
   return (
     <main className="relative min-h-screen w-full bg-[#050811] text-slate-100 overflow-hidden font-sans select-none">
       {/* 1. Full-Screen Atmospheric Background Image */}
       <div
-        className={`absolute inset-0 bg-[url('/images/landing-bg.png')] bg-cover bg-center transition-opacity duration-1000 ${
+        className={`absolute inset-0 bg-[url('/images/landing-bg.png')] bg-cover bg-center transition-opacity duration-300 ${
           isTransitioning ? 'opacity-0 scale-105' : 'opacity-85 scale-100'
         }`}
       />
 
       {/* Subtle Atmospheric Gradient Overlay for Contrast */}
       <div
-        className={`absolute inset-0 bg-gradient-to-b from-[#050811]/70 via-transparent to-[#050811]/90 transition-opacity duration-1000 ${
+        className={`absolute inset-0 bg-gradient-to-b from-[#050811]/70 via-transparent to-[#050811]/90 transition-opacity duration-300 ${
           isTransitioning ? 'opacity-0' : 'opacity-100'
         }`}
       />
 
       {/* 2. Interactive Radar / Telemetry Overlay Layer */}
-      <div className={`transition-opacity duration-700 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
         <LandingRadarCanvas />
       </div>
 
       {/* Top Header Branding Bar */}
       <header
-        className={`relative z-20 w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto transition-all duration-700 ${
+        className={`relative z-20 w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto transition-all duration-300 ${
           isTransitioning ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'
         }`}
       >
@@ -64,7 +64,7 @@ export default function HomePage() {
 
       {/* 3. Main Cinematic Landing Content (Upper-Center) */}
       <div
-        className={`relative z-20 max-w-3xl mx-auto text-center px-4 pt-10 sm:pt-16 pb-32 flex flex-col items-center space-y-6 transition-all duration-700 ${
+        className={`relative z-20 max-w-3xl mx-auto text-center px-4 pt-10 sm:pt-16 pb-32 flex flex-col items-center space-y-6 transition-all duration-300 ${
           isTransitioning ? 'opacity-0 scale-95 -translate-y-8' : 'opacity-100 scale-100 translate-y-0'
         }`}
       >
@@ -102,7 +102,7 @@ export default function HomePage() {
 
       {/* 4. Bottom Aircraft Image & Flight Transition Layer */}
       <div
-        className={`fixed left-1/2 -translate-x-1/2 pointer-events-none z-30 transition-all duration-[1400ms] ease-in-out ${
+        className={`fixed left-1/2 -translate-x-1/2 pointer-events-none z-30 transition-all duration-300 ease-in-out ${
           isTransitioning
             ? 'bottom-[120vh] scale-125 opacity-0 brightness-150 blur-[1px]'
             : 'bottom-[-65px] sm:bottom-[-55px] scale-100 opacity-95 brightness-110'
@@ -115,7 +115,7 @@ export default function HomePage() {
       >
         {/* Blue Engine Thruster Glow */}
         <div
-          className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-28 bg-blue-500/20 rounded-full blur-2xl transition-opacity duration-500 ${
+          className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-28 bg-blue-500/20 rounded-full blur-2xl transition-opacity duration-300 ${
             isTransitioning ? 'opacity-100 scale-150 bg-sky-400/40' : 'opacity-50'
           }`}
         />

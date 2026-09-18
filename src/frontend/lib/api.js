@@ -296,6 +296,8 @@ export function queryCopilot(question, assetCode = null) {
   });
 }
 
+export const copilotQuery = queryCopilot;
+
 // ─── Models API ───────────────────────────────────────────────────────────────
 
 export function listModels() {

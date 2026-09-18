@@ -41,6 +41,11 @@ function CreateMissionModal({ onClose, onCreated }) {
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const setRequirement = (index, key, value) => setForm((f) => ({
+    ...f,
+    requirements: f.requirements.map((item, i) => i === index ? { ...item, [key]: value } : item),
+  }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -53,7 +58,6 @@ function CreateMissionModal({ onClose, onCreated }) {
         duration_hours: parseFloat(form.duration_hours) || 2.0,
         priority: parseInt(form.priority, 10) || 3,
         planned_start: form.planned_start ? new Date(form.planned_start).toISOString() : undefined,
-      const payload = {
         location: form.location.trim() || undefined,
         requirements: form.requirements
           .filter((requirement) => requirement.capability.trim())
@@ -62,10 +66,6 @@ function CreateMissionModal({ onClose, onCreated }) {
             required_count: parseInt(requirement.required_count, 10) || 1,
             is_critical: requirement.is_critical,
           })),
-        const setRequirement = (index, key, value) => setForm((f) => ({
-          ...f,
-          requirements: f.requirements.map((item, i) => i === index ? { ...item, [key]: value } : item),
-        }));
       };
       const mission = await createMission(payload);
       onCreated(mission);
