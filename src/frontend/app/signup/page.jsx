@@ -152,13 +152,13 @@ export default function SignupPage() {
         </div>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-5">
+      {/* Divider matching picture design */}
+      <div className="relative my-6 text-center select-none">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800" />
+          <div className="w-full border-t border-slate-800/80 dark:border-slate-800/80 light:border-slate-300" />
         </div>
-        <div className="relative flex justify-center text-[10px] uppercase font-mono">
-          <span className="bg-[#0d121f] px-2 text-slate-500">Or continue with</span>
+        <div className="relative inline-block px-3 py-0.5 rounded-md bg-[#070f22] dark:bg-[#070f22] light:bg-slate-100 border border-slate-800/80 dark:border-slate-800/80 light:border-slate-300 text-[10px] font-mono font-bold text-slate-400 light:text-slate-600 uppercase tracking-widest">
+          OR CONTINUE WITH
         </div>
       </div>
 
