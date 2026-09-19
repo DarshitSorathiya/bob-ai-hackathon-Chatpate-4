@@ -23,11 +23,11 @@ function UrgencyBadge({ level }) {
   );
 }
 
-function CreateWorkOrderModal({ onClose, onCreated }) {
+function CreateWorkOrderModal({ onClose, onCreated, initialAssetId = '' }) {
   const [form, setForm] = useState({
-    title: '',
+    title: initialAssetId ? `Component Request — ${initialAssetId}` : '',
     description: '',
-    asset_id: '',
+    asset_id: initialAssetId || '',
     component_id: '',
     urgency_level: 'SCHEDULED',
     is_blocking: false,
@@ -142,9 +142,22 @@ export default function MaintenancePage() {
   const [loading, setLoading]       = useState(true);
   const [tab, setTab]               = useState('queue');
   const [showCreate, setShowCreate] = useState(false);
+  const [preselectedAssetId, setPreselectedAssetId] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated()) { router.replace('/login'); return; }
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const assetId = params.get('asset_id');
+      const req = params.get('request');
+      if (assetId) {
+        setPreselectedAssetId(assetId);
+      }
+      if (req === 'true' || assetId) {
+        setShowCreate(true);
+      }
+    }
   }, [router]);
 
   const load = useCallback(async () => {
@@ -173,7 +186,7 @@ export default function MaintenancePage() {
   return (
     <NavBar title="Fleet Maintenance" onBack={() => router.push('/dashboard')}>
       {showCreate && (
-        <CreateWorkOrderModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />
+        <CreateWorkOrderModal onClose={() => setShowCreate(false)} onCreated={handleCreated} initialAssetId={preselectedAssetId} />
       )}
 
       <div className="space-y-6">

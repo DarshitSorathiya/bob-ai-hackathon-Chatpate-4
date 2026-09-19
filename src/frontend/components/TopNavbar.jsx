@@ -32,6 +32,7 @@ export default function TopNavbar() {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/assets', label: 'Fleet' },
+    { href: '/request', label: 'Request' },
     { href: '/maintenance', label: 'Maintenance' },
     { href: '/alerts', label: 'Alerts' },
     { href: '/missions', label: 'Sessions' },

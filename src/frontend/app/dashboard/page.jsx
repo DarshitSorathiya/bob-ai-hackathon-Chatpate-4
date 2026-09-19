@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   AlertTriangle, Wrench, ChevronRight, Loader2,
-  Calendar, Plane, Activity
+  Calendar, Plane, Activity, Sparkles
 } from 'lucide-react';
 import TopNavbar from '../../components/TopNavbar';
 import FleetRadarScope from '../../components/FleetRadarScope';
+import FleetGoogleMap from '../../components/FleetGoogleMap';
 import {
   getUser, isAuthenticated,
   getFleetReadinessSummary, listAssets, getAllReadiness,
-  listAlerts, getMaintenanceQueue
+  listAlerts, getMaintenanceQueue, listMissions
 } from '../../lib/api';
 
 /**
@@ -60,6 +61,7 @@ export default function DashboardPage() {
   const [readinessMap, setReadinessMap]         = useState({});
   const [recentAlerts, setRecentAlerts]         = useState([]);
   const [maintenanceQueue, setMaintenanceQueue] = useState(null);
+  const [missions, setMissions]                 = useState([]);
   const [loadingData, setLoadingData]           = useState(true);
 
   useEffect(() => {
@@ -73,12 +75,13 @@ export default function DashboardPage() {
   const fetchAll = useCallback(async () => {
     setLoadingData(true);
     try {
-      const [summary, assetsList, readinessList, alertsList, queue] = await Promise.allSettled([
+      const [summary, assetsList, readinessList, alertsList, queue, missionsList] = await Promise.allSettled([
         getFleetReadinessSummary(),
-        listAssets({ limit: 20 }),
+        listAssets({ limit: 100 }),
         getAllReadiness(),
-        listAlerts({ limit: 5 }),
+        listAlerts({ limit: 10 }),
         getMaintenanceQueue(),
+        listMissions(),
       ]);
       if (summary.status === 'fulfilled')       setFleetSummary(summary.value);
       if (assetsList.status === 'fulfilled')    setAssets(assetsList.value || []);
@@ -89,16 +92,38 @@ export default function DashboardPage() {
       }
       if (alertsList.status === 'fulfilled')    setRecentAlerts(alertsList.value || []);
       if (queue.status === 'fulfilled')         setMaintenanceQueue(queue.value);
+      if (missionsList.status === 'fulfilled')  setMissions(missionsList.value || []);
     } finally {
       setLoadingData(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAll();
-    const id = setInterval(fetchAll, 60_000);
-    return () => clearInterval(id);
-  }, [fetchAll]);
+  // Dynamic status counts computed directly from enrolled assets and readiness evaluations
+  const counts = React.useMemo(() => {
+    if (assets && assets.length > 0) {
+      const c = { READY: 0, AT_RISK: 0, NOT_READY: 0 };
+      assets.forEach((asset) => {
+        const r = readinessMap[asset.id];
+        const status = r?.status || asset.status || 'READY';
+        if (c[status] !== undefined) {
+          c[status]++;
+        } else if (status === 'HEALTHY' || status === 'OPERATIONAL') {
+          c.READY++;
+        } else {
+          c.READY++;
+        }
+      });
+      return c;
+    }
+    if (fleetSummary?.counts) {
+      return {
+        READY: fleetSummary.counts.READY || 0,
+        AT_RISK: fleetSummary.counts.AT_RISK || 0,
+        NOT_READY: fleetSummary.counts.NOT_READY || 0,
+      };
+    }
+    return { READY: 0, AT_RISK: 0, NOT_READY: 0 };
+  }, [assets, readinessMap, fleetSummary]);
 
   if (!user) {
     return (
@@ -108,13 +133,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // Counts matching Picture 1 defaults
-  const counts = {
-    READY: fleetSummary?.counts?.READY ?? 0,
-    AT_RISK: fleetSummary?.counts?.AT_RISK ?? 0,
-    NOT_READY: fleetSummary?.counts?.NOT_READY ?? 0,
-  };
 
   const firstName = user.full_name?.split(' ')[0] || 'Tulsi';
 
@@ -239,10 +257,10 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-4 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#2d9f6f]" /> Active <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
+                <span className="w-2 h-2 rounded-full bg-[#2d9f6f]" /> Active <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{missions.filter((m) => m.status === 'ACTIVE' || m.status === 'IN_PROGRESS').length}</strong>
               </span>
               <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#1e4d35] dark:bg-[#4e9f76]" /> Upcoming <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.items?.length ?? 0}</strong>
+                <span className="w-2 h-2 rounded-full bg-[#1e4d35] dark:bg-[#4e9f76]" /> Upcoming <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{missions.filter((m) => m.status === 'PLANNED' || m.status === 'SCHEDULED' || m.status === 'UPCOMING').length}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -304,7 +322,26 @@ export default function DashboardPage() {
 
         </div>
 
+        {/* 4. Fleet Geospatial Operations Map Section directly below Fleet Status Overview */}
+        <div className="pt-2">
+          <FleetGoogleMap assets={assets} readinessMap={readinessMap} />
+        </div>
+
       </main>
+
+      {/* 5. Floating Telemetry Copilot Action Button fixed at bottom right */}
+      <Link
+        href="/copilot"
+        className="fixed bottom-6 right-6 z-50 group flex items-center gap-2.5 px-4 py-3 bg-[#1e4d35] hover:bg-[#163a28] text-[#f4f6ee] dark:bg-[#1e4d35] dark:hover:bg-[#276446] dark:text-[#f4f6ee] font-mono text-xs font-bold uppercase tracking-wider rounded-full shadow-2xl border border-[#4e9f76]/40 transition-all duration-300 hover:scale-105 hover:shadow-[#1e4d35]/50 active:scale-95"
+        title="Launch Telemetry AI Copilot"
+      >
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4e9f76] opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-[#2d9f6f]"></span>
+        </span>
+        <Sparkles className="w-4 h-4 text-[#78b394] group-hover:rotate-12 transition-transform duration-300" />
+        <span>Telemetry Copilot</span>
+      </Link>
     </div>
   );
 }

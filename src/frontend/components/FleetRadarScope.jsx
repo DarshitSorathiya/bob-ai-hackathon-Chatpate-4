@@ -10,19 +10,12 @@ import Link from 'next/link';
 export default function FleetRadarScope({ assets = [], readinessMap = {}, loadingData = false, countsOverride }) {
   const targets = useMemo(() => {
     if (!assets || assets.length === 0) {
-      // Default radar blips matching Picture 1 setup
-      return [
-        { id: 1, cx: 100, cy: 110, status: 'READY', colors: { dot: '#34d399', glow: 'rgba(52, 211, 153, 0.4)' } },
-        { id: 2, cx: 180, cy: 90, status: 'READY', colors: { dot: '#34d399', glow: 'rgba(52, 211, 153, 0.4)' } },
-        { id: 3, cx: 160, cy: 190, status: 'AT_RISK', colors: { dot: '#f87171', glow: 'rgba(248, 113, 113, 0.5)' } },
-        { id: 4, cx: 85, cy: 175, status: 'NOT_READY', colors: { dot: '#fbbf24', glow: 'rgba(251, 191, 36, 0.5)' } },
-        { id: 5, cx: 200, cy: 150, status: 'READY', colors: { dot: '#34d399', glow: 'rgba(52, 211, 153, 0.4)' } },
-      ];
+      return [];
     }
 
     return assets.map((asset, index) => {
       const rec = readinessMap[asset.id] || {};
-      const status = rec.status || 'READY';
+      const status = rec.status || asset.status || 'READY';
 
       const angleStep = (2 * Math.PI) / Math.max(assets.length, 1);
       const angle = index * angleStep - Math.PI / 2;
@@ -50,17 +43,22 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
 
   const counts = useMemo(() => {
     if (countsOverride) return countsOverride;
-    return {
-      READY: 18,
-      AT_RISK: 4,
-      NOT_READY: 3,
-    };
-  }, [countsOverride]);
+    const c = { READY: 0, AT_RISK: 0, NOT_READY: 0 };
+    if (assets && assets.length > 0) {
+      assets.forEach((asset) => {
+        const rec = readinessMap[asset.id] || {};
+        const status = rec.status || asset.status || 'READY';
+        if (c[status] !== undefined) c[status]++;
+        else c.READY++;
+      });
+    }
+    return c;
+  }, [countsOverride, assets, readinessMap]);
 
-  const total = (counts.READY || 0) + (counts.AT_RISK || 0) + (counts.NOT_READY || 0) || 25;
-  const readyPercent = Math.round(((counts.READY || 18) / total) * 100);
-  const atRiskPercent = Math.round(((counts.AT_RISK || 4) / total) * 100);
-  const notReadyPercent = Math.round(((counts.NOT_READY || 3) / total) * 100);
+  const total = (counts.READY || 0) + (counts.AT_RISK || 0) + (counts.NOT_READY || 0);
+  const readyPercent = total > 0 ? Math.round(((counts.READY || 0) / total) * 100) : 0;
+  const atRiskPercent = total > 0 ? Math.round(((counts.AT_RISK || 0) / total) * 100) : 0;
+  const notReadyPercent = total > 0 ? Math.round(((counts.NOT_READY || 0) / total) * 100) : 0;
 
   return (
     <div className="dashboard-card-shape p-6 flex flex-col justify-between h-full transition-all duration-200">
@@ -150,7 +148,7 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
                 Ready
               </span>
               <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
-                {loadingData ? '18' : (counts.READY ?? 18)}
+                {loadingData ? '...' : (counts.READY ?? 0)}
               </span>
             </div>
             <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">
@@ -169,7 +167,7 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
                 At Risk
               </span>
               <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
-                {loadingData ? '4' : (counts.AT_RISK ?? 4)}
+                {loadingData ? '...' : (counts.AT_RISK ?? 0)}
               </span>
             </div>
             <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">
@@ -188,7 +186,7 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
                 Not Ready
               </span>
               <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
-                {loadingData ? '3' : (counts.NOT_READY ?? 3)}
+                {loadingData ? '...' : (counts.NOT_READY ?? 0)}
               </span>
             </div>
             <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">

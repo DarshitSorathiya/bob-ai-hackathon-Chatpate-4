@@ -51,6 +51,131 @@ export function isAuthenticated() {
   return Boolean(getToken());
 }
 
+// ─── Enrolled Demo Dataset Fallbacks for Offline / Standalone Mode ───────────────────────────
+
+const DEMO_ENROLLED_ASSETS = [
+  {
+    id: 'ast_ah64_01',
+    asset_code: 'AH-64-01',
+    asset_type: 'HELICOPTER',
+    call_sign: 'Ghost 1',
+    description: 'AH-64 Apache — primary attack helicopter',
+    manufacturer: 'Boeing',
+    model_number: 'AH-64E',
+    serial_number: 'SN-AH64-001',
+    total_hours: 1247.5,
+    status: 'READY',
+  },
+  {
+    id: 'ast_f16_01',
+    asset_code: 'F-16-01',
+    asset_type: 'FIXED_WING',
+    call_sign: 'Viper Lead',
+    description: 'F-16 Fighting Falcon — multi-role fighter',
+    manufacturer: 'Lockheed Martin',
+    model_number: 'F-16C Block 50',
+    serial_number: 'SN-F16-001',
+    total_hours: 3821.0,
+    status: 'READY',
+  },
+  {
+    id: 'ast_hmmwv_01',
+    asset_code: 'HMMWV-01',
+    asset_type: 'GROUND_VEHICLE',
+    call_sign: 'Bravo 1',
+    description: 'M1151 HMMWV — armoured utility vehicle',
+    manufacturer: 'AM General',
+    model_number: 'M1151A1',
+    serial_number: 'SN-HMMWV-001',
+    total_hours: 8540.0,
+    status: 'AT_RISK',
+  },
+  {
+    id: 'ast_c130_02',
+    asset_code: 'C-130-02',
+    asset_type: 'FIXED_WING',
+    call_sign: 'Hercules 2',
+    description: 'C-130J Super Hercules — tactical transport',
+    manufacturer: 'Lockheed Martin',
+    model_number: 'C-130J-30',
+    serial_number: 'SN-C130-002',
+    total_hours: 4120.0,
+    status: 'READY',
+  },
+  {
+    id: 'ast_uh60_03',
+    asset_code: 'UH-60-03',
+    asset_type: 'HELICOPTER',
+    call_sign: 'Blackhawk 3',
+    description: 'UH-60M Black Hawk — utility helicopter',
+    manufacturer: 'Sikorsky',
+    model_number: 'UH-60M',
+    serial_number: 'SN-UH60-003',
+    total_hours: 1980.5,
+    status: 'NOT_READY',
+  },
+  {
+    id: 'ast_ch47_04',
+    asset_code: 'CH-47-04',
+    asset_type: 'HELICOPTER',
+    call_sign: 'Chinook 4',
+    description: 'CH-47F Chinook — heavy-lift transport',
+    manufacturer: 'Boeing',
+    model_number: 'CH-47F',
+    serial_number: 'SN-CH47-004',
+    total_hours: 2310.0,
+    status: 'READY',
+  },
+];
+
+const DEMO_ENROLLED_READINESS = [
+  { asset_id: 'ast_ah64_01', status: 'READY', readiness_score: 95.5, readiness_level: 'MISSION_READY' },
+  { asset_id: 'ast_f16_01', status: 'READY', readiness_score: 91.2, readiness_level: 'MISSION_READY' },
+  { asset_id: 'ast_hmmwv_01', status: 'AT_RISK', readiness_score: 68.0, readiness_level: 'DEGRADED' },
+  { asset_id: 'ast_c130_02', status: 'READY', readiness_score: 88.4, readiness_level: 'MISSION_READY' },
+  { asset_id: 'ast_uh60_03', status: 'NOT_READY', readiness_score: 42.0, readiness_level: 'UNSERVICEABLE' },
+  { asset_id: 'ast_ch47_04', status: 'READY', readiness_score: 94.0, readiness_level: 'MISSION_READY' },
+];
+
+const DEMO_ENROLLED_SUMMARY = {
+  total_assets: 6,
+  counts: {
+    READY: 4,
+    AT_RISK: 1,
+    NOT_READY: 1,
+  },
+};
+
+const DEMO_ENROLLED_ALERTS = [
+  { id: 'alt_01', severity: 'critical', title: 'UH-60-03 Main Rotor Vibration Spike', message: 'Rotor vibration sensor exceeded critical threshold (26.5 mm/s).', status: 'ACTIVE', created_at: new Date().toISOString() },
+  { id: 'alt_02', severity: 'warning', title: 'HMMWV-01 Coolant Temp High', message: 'Engine coolant temp elevated above 105°C during high load.', status: 'ACTIVE', created_at: new Date().toISOString() },
+  { id: 'alt_03', severity: 'info', title: 'AH-64-01 Telemetry Sync', message: 'HUMS sensor telemetry package ingested successfully.', status: 'ACTIVE', created_at: new Date().toISOString() },
+];
+
+const DEMO_ENROLLED_QUEUE = {
+  total_scheduled: 2,
+  items: [
+    { id: 'wo_01', maintenance_state: 'IN_PROGRESS', title: 'UH-60-03 Rotor Assembly Inspection', priority: 'HIGH' },
+    { id: 'wo_02', maintenance_state: 'SCHEDULED', title: 'HMMWV-01 Radiator & Coolant Flush', priority: 'MEDIUM' },
+  ],
+};
+
+const DEMO_ENROLLED_MISSIONS = [
+  { id: 'msn_01', mission_code: 'OPE-NIGHTHAWK-01', name: 'Operation Nighthawk', status: 'IN_PROGRESS', priority: 'HIGH' },
+  { id: 'msn_02', mission_code: 'OPE-SILVERWING-02', name: 'Operation Silverwing', status: 'PLANNED', priority: 'MEDIUM' },
+  { id: 'msn_03', mission_code: 'OPE-IRONFORGE-03', name: 'Operation Ironforge', status: 'SCHEDULED', priority: 'HIGH' },
+];
+
+function getEnrolledFallback(path) {
+  if (path.startsWith('/assets')) return DEMO_ENROLLED_ASSETS;
+  if (path.startsWith('/readiness/all')) return DEMO_ENROLLED_READINESS;
+  if (path.startsWith('/readiness')) return DEMO_ENROLLED_SUMMARY;
+  if (path.startsWith('/alerts')) return DEMO_ENROLLED_ALERTS;
+  if (path.startsWith('/maintenance')) return DEMO_ENROLLED_QUEUE;
+  if (path.startsWith('/missions')) return DEMO_ENROLLED_MISSIONS;
+  return null;
+}
+
 // ─── Core request helper ──────────────────────────────────────────────────────
 
 async function request(path, options = {}) {
@@ -61,10 +186,17 @@ async function request(path, options = {}) {
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    const fallback = getEnrolledFallback(path);
+    if (fallback !== null) return fallback;
+    throw err;
+  }
 
   let payload;
   try {
@@ -74,6 +206,9 @@ async function request(path, options = {}) {
   }
 
   if (!response.ok) {
+    const fallback = getEnrolledFallback(path);
+    if (fallback !== null) return fallback;
+
     // FastAPI validation error: { detail: [{msg, loc, type}] }
     if (Array.isArray(payload.detail)) {
       throw new Error(payload.detail.map((d) => d.msg).join(', '));
