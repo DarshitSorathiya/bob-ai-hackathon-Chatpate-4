@@ -149,9 +149,9 @@ class CopilotService:
         # Build context string from evidence
         context = self._build_context(question, evidence)
 
-        # Call LLM — try watsonx, fall back to Groq, else unavailable
+        # Call LLM — try watsonx, fall back to Groq, else evidence-only
         settings = get_settings()
-        if settings.copilot_llm_enabled:
+        if settings.llm_available:
             answer, model_used = self._call_llm(question, context, settings)
         else:
             answer = self._evidence_only_answer(evidence)
@@ -167,20 +167,28 @@ class CopilotService:
 
     @staticmethod
     def _evidence_only_answer(evidence: list[ToolResult]) -> str:
-        """Return deterministic guidance without inferring beyond evidence."""
+        """Summarise retrieved evidence without an LLM when no provider is configured."""
         if not evidence:
-            return "No operational evidence is available for this request."
+            return "No operational data could be retrieved for this request."
+
         failed = [item.tool_name for item in evidence if item.error]
+        succeeded = [item for item in evidence if not item.error and item.data is not None]
+
+        lines: list[str] = []
+
+        if succeeded:
+            lines.append(f"Retrieved {len(succeeded)} evidence source(s) from the backend database:")
+            for item in succeeded:
+                lines.append(f"  • [{item.tool_name}] {item.query}")
         if failed:
-            return (
-                "Some requested evidence could not be retrieved "
-                f"({', '.join(failed)}). Review the returned records before acting."
-            )
-        return (
-            "This response is evidence-only. Review the returned records for current "
-            "telemetry, predictions, maintenance state, and deterministic readiness reasons. "
-            "Do not treat this endpoint as a readiness decision."
+            lines.append(f"\nCould not retrieve: {', '.join(failed)}.")
+
+        lines.append(
+            "\nExpand the evidence items below to inspect the raw records. "
+            "To enable AI-generated explanations, configure GROQ_API_KEY or "
+            "WATSONX_API_KEY + WATSONX_PROJECT_ID in the server environment."
         )
+        return "\n".join(lines)
 
     # ------------------------------------------------------------------
     # Backend tools — all read from real DB
@@ -329,32 +337,53 @@ class CopilotService:
 
     @staticmethod
     def _build_context(question: str, evidence: list[ToolResult]) -> str:
-        """Build a structured context string from tool results."""
+        """Build the user-turn message sent to the LLM.
+
+        Structure:
+            Operator question
+            ---
+            Evidence block (one labelled section per tool)
+            ---
+            Reminder not to invent values
+        """
         import json
-        parts = [f"QUESTION: {question}\n\nEVIDENCE FROM BACKEND DATABASE:"]
+        lines: list[str] = [
+            f"Operator question: {question}",
+            "",
+            "--- BACKEND EVIDENCE ---",
+        ]
         for tool in evidence:
-            parts.append(f"\n--- Tool: {tool.tool_name} ---")
+            lines.append(f"\n[{tool.tool_name}] {tool.query}")
             if tool.error:
-                parts.append(f"ERROR: {tool.error}")
+                lines.append(f"ERROR: {tool.error}")
             elif tool.data is not None:
-                parts.append(json.dumps(tool.data, indent=2, default=str))
+                lines.append(json.dumps(tool.data, indent=2, default=str))
             else:
-                parts.append("No data returned.")
-        parts.append(
-            "\n\nINSTRUCTIONS: Answer the question using ONLY the evidence above. "
-            "Do NOT invent telemetry values, predictions, or readiness decisions. "
-            "If the evidence is insufficient, say so explicitly."
-        )
-        return "\n".join(parts)
+                lines.append("(no data returned)")
+
+        lines += [
+            "",
+            "--- END OF EVIDENCE ---",
+            "",
+            "Answer the operator's question using ONLY the evidence above.",
+            "Do not invent any values not present in the evidence.",
+        ]
+        return "\n".join(lines)
 
     # ------------------------------------------------------------------
     # LLM dispatch — watsonx.ai → Groq → unavailable
     # ------------------------------------------------------------------
 
     _SYSTEM_PROMPT = (
-        "You are MissionReady Copilot, an AI assistant for military aviation maintenance operations. "
-        "You ONLY explain information from the provided backend evidence. "
-        "You NEVER invent sensor readings, predictions, or maintenance decisions."
+        "You are MissionReady Copilot, an AI assistant for military aviation predictive maintenance.\n"
+        "Rules:\n"
+        "- Answer using ONLY the evidence provided. Never invent sensor values, telemetry, predictions, or readiness decisions.\n"
+        "- Be concise and direct. Do NOT include preamble sections like 'Reasoning', 'Background', or 'Analysis'.\n"
+        "- Structure your response with markdown: **bold** for key values, numbered or bulleted lists for multiple items, "
+        "a table when comparing structured data across rows.\n"
+        "- End every response with a single '**Recommended Action:**' sentence stating the concrete next step, "
+        "or 'No immediate action required.' if none is needed.\n"
+        "- If evidence is empty or errored, state exactly what is missing — do not guess."
     )
 
     @staticmethod
@@ -435,8 +464,8 @@ class CopilotService:
                     {"role": "system", "content": CopilotService._SYSTEM_PROMPT},
                     {"role": "user", "content": context},
                 ],
-                max_tokens=512,
-                temperature=0.1,
+                max_tokens=1024,
+                temperature=0.2,
             )
             answer = completion.choices[0].message.content or ""
             model_id = f"groq/{settings.groq_model}"

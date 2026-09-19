@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { User, ChevronDown, LogOut, Sun, Moon } from 'lucide-react';
-import { getUser, clearSession } from '../lib/api';
+import { getUser, clearSession, getUserRole, ROLE_LABELS } from '../lib/api';
 import { useTheme } from './ThemeProvider';
 
 /**
@@ -18,10 +18,12 @@ export default function TopNavbar() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     setUser(getUser());
+    setRole(getUserRole());
   }, []);
 
   const handleLogout = () => {
@@ -104,10 +106,23 @@ export default function TopNavbar() {
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-[#122419] border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 shadow-2xl p-2 z-50 text-xs font-mono">
-              <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 text-[#566b5c] dark:text-slate-400">
-                Signed in as <br />
-                <strong className="text-[#122018] dark:text-slate-200">{user?.email || 'tulsi@missionready.ai'}</strong>
+            <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-[#122419] border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 shadow-2xl p-2 z-50 text-xs font-mono">
+              <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 text-[#566b5c] dark:text-slate-400 space-y-1">
+                <div>
+                  Signed in as <br />
+                  <strong className="text-[#122018] dark:text-slate-200">{user?.email || ''}</strong>
+                </div>
+                {role && (
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${
+                    role === 'admin'
+                      ? 'bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-purple-400'
+                      : role === 'maintainer'
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-400'
+                        : 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/20 dark:text-emerald-400'
+                  }`}>
+                    {ROLE_LABELS[role] ?? role}
+                  </span>
+                )}
               </div>
               <button
                 onClick={handleLogout}

@@ -14,3 +14,4 @@ This file provides guidance to agents when working with code in this repository.
 - **`src/backend/app/ml/`** contains data ingestion, validation, and simulator code — ingestion (Phase 3) is not yet tested against real datasets; the simulator (Phase 4) has 28/28 tests passing.
 - **Google OAuth** is partially wired: backend has `/auth/google` endpoint and `authenticate_google()` in `AuthService`; the `GoogleButton` component in `src/frontend/` is a non-functional stub unless a real `onClick` prop is provided.
 - **Two separate CSS systems in `src/frontend/`** — `app/globals.css` (Tailwind directives) and `public/styles.css` (imported in `layout.jsx`) — both are active simultaneously.
+- **Dataset registry** at `src/backend/data/dataset_registry.json` is the authoritative list of known datasets for the ML pipeline — `dataset_id` values in ingestion code must match entries here.

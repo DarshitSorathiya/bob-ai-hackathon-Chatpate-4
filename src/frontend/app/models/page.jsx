@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, AlertTriangle, Cpu, Layers, Activity } from 'lucide-react';
-import { isAuthenticated, listModels, getModel } from '../../lib/api';
+import { listModels, getModel } from '../../lib/api';
 import NavBar from '../../components/NavBar';
+import RoleGuard from '../../components/RoleGuard';
 
 const TASK_STYLES = {
   rul:     'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300',
@@ -118,9 +119,7 @@ export default function ModelsPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    if (!isAuthenticated()) { router.replace('/login'); return; }
-  }, [router]);
+  // Auth + role enforcement is handled by RoleGuard wrapper below.
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,6 +141,7 @@ export default function ModelsPage() {
   const list = models.length > 0 ? models : defaultModels;
 
   return (
+    <RoleGuard minRole="maintainer">
     <NavBar title="ML Models" onBack={() => router.push('/dashboard')}>
       {selected && <ModelDetail tag={selected} onClose={() => setSelected(null)} />}
 
@@ -248,5 +248,6 @@ export default function ModelsPage() {
         )}
       </div>
     </NavBar>
+    </RoleGuard>
   );
 }

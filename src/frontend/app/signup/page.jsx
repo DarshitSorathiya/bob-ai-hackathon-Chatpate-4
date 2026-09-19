@@ -3,12 +3,30 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock, ShieldCheck } from 'lucide-react';
 import AuthLayout from '../../components/AuthLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import GoogleButton from '../../components/GoogleButton';
-import { registerUser, saveSession } from '../../lib/api';
+import { registerUser, saveSession, getUserRole } from '../../lib/api';
+
+function getRoleRedirect(role) {
+  if (role === 'admin') return '/admin';
+  return '/dashboard';
+}
+
+const ROLE_OPTIONS = [
+  {
+    value: 'operator',
+    label: 'Operator',
+    description: 'View fleet status, alerts, and missions. Read-only access.',
+  },
+  {
+    value: 'maintainer',
+    label: 'Maintainer',
+    description: 'Create and manage work orders, assets, and maintenance records.',
+  },
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,6 +36,7 @@ export default function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'operator',
   });
 
   const [errors, setErrors] = useState({});
@@ -72,7 +91,7 @@ export default function SignupPage() {
     try {
       const response = await registerUser(formData);
       saveSession(response);
-      router.push('/dashboard');
+      router.push(getRoleRedirect(getUserRole()));
     } catch (error) {
       setAuthError(error.message || 'Registration failed. Please try again.');
     } finally {
@@ -145,6 +164,35 @@ export default function SignupPage() {
           icon={Lock}
         />
 
+        {/* Role selector */}
+        <div>
+          <label className="block text-xs font-mono font-semibold text-[#122018] dark:text-slate-300 mb-2 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#1e4d35] dark:text-emerald-400" />
+            Account Role
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {ROLE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, role: opt.value }))}
+                className={`text-left p-3 rounded-xl border transition-all duration-150 ${
+                  formData.role === opt.value
+                    ? 'bg-[#1e4d35] border-[#1e4d35] text-white shadow-md'
+                    : 'bg-[#e1eadf]/60 dark:bg-slate-900/60 border-[#1e4d35]/20 dark:border-slate-700 text-[#122018] dark:text-slate-300 hover:border-[#1e4d35] hover:bg-[#e1eadf]'
+                }`}
+              >
+                <p className={`text-xs font-bold font-mono ${formData.role === opt.value ? 'text-white' : 'text-[#122018] dark:text-slate-100'}`}>
+                  {opt.label}
+                </p>
+                <p className={`text-[10px] mt-0.5 leading-snug ${formData.role === opt.value ? 'text-emerald-200' : 'text-[#566b5c] dark:text-slate-400'}`}>
+                  {opt.description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="pt-2">
           <Button type="submit" isLoading={isLoading}>
             Create Account
@@ -164,7 +212,7 @@ export default function SignupPage() {
 
       <GoogleButton
         label="Continue with Google"
-        onSuccess={() => router.push('/dashboard')}
+        onSuccess={() => router.push(getRoleRedirect(getUserRole()))}
         onError={(msg) => setAuthError(msg)}
       />
 

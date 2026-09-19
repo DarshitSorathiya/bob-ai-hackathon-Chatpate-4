@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Database, AlertTriangle, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
-import { isAuthenticated, getDataQualityEvents, getDataQualitySummary } from '../../lib/api';
+import { getDataQualityEvents, getDataQualitySummary } from '../../lib/api';
 import NavBar from '../../components/NavBar';
+import RoleGuard from '../../components/RoleGuard';
 
 const ISSUE_SEVERITY = {
   critical: { border: 'border-l-red-500',   badge: 'bg-red-500/15 border-red-500/30 text-red-400',     icon: XCircle },
@@ -52,9 +53,7 @@ export default function DataQualityPage() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
 
-  useEffect(() => {
-    if (!isAuthenticated()) { router.replace('/login'); return; }
-  }, [router]);
+  // Auth enforcement handled by RoleGuard wrapper below.
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,6 +83,7 @@ export default function DataQualityPage() {
   const displaySummary = summary || { total: 0, critical: 0, warning: 0, info: 0, sensor_faults: 0, stale_data: 0 };
 
   return (
+    <RoleGuard minRole="operator">
     <NavBar title="Data Quality" onBack={() => router.push('/dashboard')}>
       <div className="space-y-6">
         {/* Title Header */}
@@ -190,5 +190,6 @@ export default function DataQualityPage() {
         )}
       </div>
     </NavBar>
+    </RoleGuard>
   );
 }

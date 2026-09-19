@@ -15,6 +15,15 @@ class UserRepository:
     def get_by_google_subject(self, db: Session, google_subject: str) -> User | None:
         return db.scalar(select(User).where(User.google_subject == google_subject))
 
+    def list_all(self, db: Session, skip: int = 0, limit: int = 200) -> list[User]:
+        return list(db.scalars(select(User).order_by(User.id).offset(skip).limit(limit)))
+
+    def update_role(self, db: Session, user: User, role: str) -> User:
+        user.role = role
+        db.commit()
+        db.refresh(user)
+        return user
+
     def create(
         self,
         db: Session,

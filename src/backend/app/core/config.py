@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     # Groq (optional — fallback LLM if watsonx.ai is unavailable)
     groq_api_key: str | None = None
     groq_model: str = "compound-beta"
-    copilot_llm_enabled: bool = False
+    # copilot_llm_enabled: kept for explicit opt-out via env var.
+    # Defaults to True whenever any LLM key is present so no manual flag is needed.
+    copilot_llm_enabled: bool = True
 
     # Logging
     log_level: str = "INFO"
@@ -62,6 +64,12 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.app_env.lower() == "development"
+
+    @property
+    def llm_available(self) -> bool:
+        """True when at least one LLM provider key is configured AND the flag is not explicitly disabled."""
+        has_key = bool(self.watsonx_api_key and self.watsonx_project_id) or bool(self.groq_api_key)
+        return self.copilot_llm_enabled and has_key
 
 
 @lru_cache

@@ -51,7 +51,7 @@ class AuthService:
             full_name=request.full_name.strip(),
             email=email,
             password_hash=hash_password(request.password),
-            role=OPERATOR,
+            role=request.role,
         )
 
     def authenticate(self, db: Session, request: LoginRequest) -> User:

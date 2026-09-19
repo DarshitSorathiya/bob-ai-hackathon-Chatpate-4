@@ -8,7 +8,12 @@ import AuthLayout from '../../components/AuthLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import GoogleButton from '../../components/GoogleButton';
-import { loginUser, saveSession, requestPasswordReset } from '../../lib/api';
+import { loginUser, saveSession, requestPasswordReset, getUserRole } from '../../lib/api';
+
+function getRoleRedirect(role) {
+  if (role === 'admin') return '/admin';
+  return '/dashboard';
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,7 +59,7 @@ export default function LoginPage() {
     try {
       const response = await loginUser(formData);
       saveSession(response);
-      router.push('/dashboard');
+      router.push(getRoleRedirect(getUserRole()));
     } catch (error) {
       setAuthError(error.message || 'Authentication failed. Please try again.');
     } finally {
@@ -148,7 +153,7 @@ export default function LoginPage() {
 
       <GoogleButton
         label="Continue with Google"
-        onSuccess={() => router.push('/dashboard')}
+        onSuccess={() => router.push(getRoleRedirect(getUserRole()))}
         onError={(msg) => setAuthError(msg)}
       />
 

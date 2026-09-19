@@ -1,13 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Shield, Compass, Wrench, AlertTriangle,
-  Activity, Sparkles, Cpu
+  Activity, Sparkles, Cpu, Users
 } from 'lucide-react';
+import { getUserRole, ROLE_LABELS, ROLES } from '../lib/api';
 
+/**
+ * Nav items with optional `minRole` — items are hidden when the user's role
+ * is below the required level.  Items without `minRole` are visible to all
+ * authenticated users.
+ */
 const SIDEBAR_NAV = [
   { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/assets',       label: 'Assets',       icon: Shield },
@@ -16,11 +22,24 @@ const SIDEBAR_NAV = [
   { href: '/alerts',       label: 'Alerts',       icon: AlertTriangle, hasBadge: true },
   { href: '/data-quality', label: 'Data Quality', icon: Activity },
   { href: '/copilot',      label: 'Copilot',      icon: Sparkles },
-  { href: '/models',       label: 'Models',       icon: Cpu },
+  { href: '/models',       label: 'Models',       icon: Cpu,      minRole: ROLES.MAINTAINER },
+  { href: '/admin',        label: 'Admin',         icon: Users,    minRole: ROLES.ADMIN },
 ];
+
+const ROLE_LEVEL = { operator: 1, maintainer: 2, admin: 3 };
 
 export default function Sidebar({ alertCount = 0 }) {
   const pathname = usePathname();
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    setRole(getUserRole());
+  }, []);
+
+  const visibleNav = SIDEBAR_NAV.filter(({ minRole }) => {
+    if (!minRole) return true;
+    return (ROLE_LEVEL[role] ?? 0) >= (ROLE_LEVEL[minRole] ?? 0);
+  });
 
   return (
     <aside className="w-56 shrink-0 bg-[#f4f6ee] dark:bg-[#060913]/85 border-r border-[#1e4d35]/20 dark:border-slate-800/80 min-h-screen flex flex-col justify-between p-4 backdrop-blur-xl relative z-30 select-none shadow-xl">
@@ -45,7 +64,7 @@ export default function Sidebar({ alertCount = 0 }) {
 
         {/* Vertical Navigation Links */}
         <nav className="space-y-1 text-xs font-mono">
-          {SIDEBAR_NAV.map(({ href, label, icon: Icon, hasBadge }) => {
+          {visibleNav.map(({ href, label, icon: Icon, hasBadge }) => {
             const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href));
             return (
               <Link
@@ -73,8 +92,21 @@ export default function Sidebar({ alertCount = 0 }) {
         </nav>
       </div>
 
-      {/* Footer Branding Slogan matching Reference */}
+      {/* Footer: role badge + branding */}
       <div className="pt-4 border-t border-[#1e4d35]/20 dark:border-slate-800/80 space-y-3">
+        {role && (
+          <div className="flex items-center gap-2 px-2">
+            <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest border ${
+              role === 'admin'
+                ? 'bg-purple-500/15 border-purple-500/40 text-purple-500 dark:text-purple-400'
+                : role === 'maintainer'
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400'
+                  : 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/20 dark:text-emerald-400'
+            }`}>
+              {ROLE_LABELS[role] ?? role}
+            </span>
+          </div>
+        )}
         <div className="border-l-2 border-[#1e4d35] pl-2.5 py-0.5 font-mono text-[9px] tracking-widest leading-relaxed">
           <p className="text-[#122018] dark:text-slate-400 font-bold uppercase">SAFER MISSIONS</p>
           <p className="text-[#566b5c] dark:text-slate-500 uppercase">HIGHER SUCCESS</p>

@@ -1,6 +1,10 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+# Roles that a user may self-select at registration.
+# ADMIN is excluded — it must be granted by an existing admin.
+RegistrableRole = Literal["operator", "maintainer"]
 
 
 class RegisterRequest(BaseModel):
@@ -16,6 +20,7 @@ class RegisterRequest(BaseModel):
         max_length=128,
         validation_alias=AliasChoices("confirmPassword", "confirm_password"),
     )]
+    role: RegistrableRole = "operator"
 
     @model_validator(mode="after")
     def passwords_match(self) -> "RegisterRequest":
@@ -55,3 +60,8 @@ class AuthResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class RoleUpdateRequest(BaseModel):
+    """Body for PATCH /auth/admin/users/{user_id}/role — admin only."""
+    role: Literal["operator", "maintainer", "admin"]
