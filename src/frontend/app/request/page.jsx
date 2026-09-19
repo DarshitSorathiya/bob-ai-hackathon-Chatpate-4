@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wrench, Plus, CheckCircle2, AlertTriangle, Clock, ArrowLeft, Plane, Shield, Layers, Send } from 'lucide-react';
+import { Wrench, CheckCircle2, AlertTriangle, Send, PackageCheck, Clock, ShieldCheck, UserCheck, ArrowRight } from 'lucide-react';
 import NavBar from '../../components/NavBar';
-import { isAuthenticated, listAssets, createWorkOrder, listWorkOrders, getMaintenanceQueue } from '../../lib/api';
+import {
+  isAuthenticated, getUser, listAssets, createWorkOrder, listWorkOrders,
+  getResourceRequests, createResourceRequest, updateResourceRequestStatus
+} from '../../lib/api';
 
 const URGENCY_BADGES = {
   IMMEDIATE: 'bg-red-500/15 border-red-500/30 text-red-400',
@@ -13,28 +16,42 @@ const URGENCY_BADGES = {
   ROUTINE:   'bg-slate-700/30 border-slate-700 text-slate-400',
 };
 
+const STATUS_BADGES = {
+  PENDING:   'bg-amber-500/20 text-amber-300 border-amber-500/40',
+  APPROVED:  'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+  FULFILLED: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+  REJECTED:  'bg-red-500/20 text-red-300 border-red-500/40',
+};
+
 export default function RequestPage() {
   const router = useRouter();
+  const currentUser = getUser() || { id: 'usr_operator_bengaluru', full_name: 'Tulsi' };
+
   const [assets, setAssets] = useState([]);
   const [workOrders, setWorkOrders] = useState([]);
+  const [resourceRequests, setResourceRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [selectedOrigin, setSelectedOrigin] = useState(null);
+
+  // Form State
   const [form, setForm] = useState({
     title: '',
+    resource_name: 'Hydraulic Fluid (MIL-PRF-83282)',
+    quantity: '20 units',
     description: '',
-    asset_id: '',
-    component_id: '',
-    urgency_level: 'SCHEDULED',
-    is_blocking: false,
+    asset_id: 'TJS-014',
+    component_id: 'CMP-HYD-88',
+    urgency_level: 'URGENT',
+    is_blocking: true,
     estimated_hours: '2',
   });
 
-  const [selectedOrigin, setSelectedOrigin] = useState(null);
-
-  // Handle URL query parameters for preselected asset & location
+  // Handle URL query parameters
   useEffect(() => {
     if (!isAuthenticated()) { router.replace('/login'); return; }
 
@@ -43,8 +60,28 @@ export default function RequestPage() {
       const assetId = params.get('asset_id');
       const locName = params.get('location');
       const aircraftName = params.get('aircraft');
+      const providerId = params.get('provider_id');
+      const facilityName = params.get('facility');
 
-      if (assetId || locName) {
+      if (providerId || facilityName) {
+        // Target is an External Resource Support Facility (User B / Provider)
+        const provObj = {
+          provider_id: providerId || 'usr_provider_pune',
+          facility: facilityName || 'Lohegaon Resource Support Facility, Pune, Maharashtra, India',
+          location: locName || 'Pune, Maharashtra, India',
+        };
+        setSelectedProvider(provObj);
+
+        const defaultDesc = `Resource request from HAL Airport Base, Bengaluru to ${provObj.facility} for 20 units of Hydraulic Fluid (MIL-PRF-83282).`;
+        setForm((f) => ({
+          ...f,
+          title: `Resource Request — ${provObj.facility}`,
+          resource_name: 'Hydraulic Fluid (MIL-PRF-83282)',
+          quantity: '20 units',
+          description: defaultDesc,
+        }));
+      } else if (assetId || locName) {
+        // Target is an Own Asset Requisition
         const originObj = {
           asset_id: assetId || 'TJS-014',
           location: locName || 'HAL Airport Base, Bengaluru, Karnataka, India',
@@ -55,8 +92,8 @@ export default function RequestPage() {
         setForm((f) => ({
           ...f,
           asset_id: assetId || f.asset_id,
-          title: f.title || `Component Request — ${originObj.aircraft} (${originObj.asset_id})`,
-          description: f.description || `Component requested for ${originObj.aircraft} (${originObj.asset_id}) stationed at ${originObj.location}.`,
+          title: `Component Request — ${originObj.aircraft} (${originObj.asset_id})`,
+          description: `Component requested for ${originObj.aircraft} (${originObj.asset_id}) stationed at ${originObj.location}.`,
         }));
       }
     }
@@ -69,8 +106,23 @@ export default function RequestPage() {
         listAssets({ limit: 100 }),
         listWorkOrders({ limit: 100 }),
       ]);
-      if (aList.status === 'fulfilled') setAssets(aList.value || []);
-      if (woList.status === 'fulfilled') setWorkOrders(woList.value || []);
+      if (aList.status === 'fulfilled') {
+        const assetsVal = aList.value;
+        const assetsArr = Array.isArray(assetsVal) ? assetsVal : (assetsVal?.items || []);
+        setAssets(assetsArr);
+      }
+      if (woList.status === 'fulfilled') {
+        const woVal = woList.value;
+        const woArr = Array.isArray(woVal)
+          ? woVal
+          : Array.isArray(woVal?.items)
+          ? woVal.items
+          : Array.isArray(woVal?.work_orders)
+          ? woVal.work_orders
+          : [];
+        setWorkOrders(woArr);
+      }
+      setResourceRequests(getResourceRequests());
     } finally {
       setLoading(false);
     }
@@ -89,6 +141,7 @@ export default function RequestPage() {
       ...prev,
       asset_id: asset.id || asset.asset_code,
       title: `Component Request — ${asset.asset_code} (${asset.call_sign || asset.asset_type})`,
+      description: `Component requested for ${asset.asset_code} (${asset.call_sign || asset.asset_type}) stationed at HAL Airport Base, Bengaluru, Karnataka, India.`,
     }));
   };
 
@@ -99,27 +152,38 @@ export default function RequestPage() {
     setSaving(true);
 
     try {
-      const payload = {
-        title: form.title.trim() || `Component Request for Asset #${form.asset_id}`,
-        description: form.description.trim() || undefined,
-        asset_id: form.asset_id || undefined,
-        component_id: form.component_id.trim() || undefined,
-        urgency_level: form.urgency_level,
-        is_blocking: form.is_blocking,
-        estimated_hours: parseFloat(form.estimated_hours) || 2,
-      };
+      if (selectedProvider) {
+        // Submit Resource Request to External Provider Facility
+        const reqPayload = {
+          requester_id: currentUser.id || 'usr_operator_bengaluru',
+          requester_name: `${currentUser.full_name || 'Tulsi'} (HAL Bengaluru Base)`,
+          requester_location: 'HAL Airport Base, Bengaluru, Karnataka, India',
+          provider_id: selectedProvider.provider_id,
+          provider_facility: selectedProvider.facility,
+          resource_name: form.resource_name,
+          quantity: form.quantity,
+          priority: form.urgency_level,
+          reason: form.description || `Request for ${form.quantity} of ${form.resource_name}`,
+        };
 
-      await createWorkOrder(payload);
-      setSuccessMsg(`Component request successfully submitted for Asset #${form.asset_id || 'Fleet'}.`);
-      setForm({
-        title: '',
-        description: '',
-        asset_id: '',
-        component_id: '',
-        urgency_level: 'SCHEDULED',
-        is_blocking: false,
-        estimated_hours: '2',
-      });
+        createResourceRequest(reqPayload);
+        setSuccessMsg(`Resource request for ${form.quantity} of ${form.resource_name} successfully sent to ${selectedProvider.facility}. Request status: PENDING.`);
+      } else {
+        // Submit Internal Asset Work Order Requisition
+        const payload = {
+          title: form.title.trim() || `Component Request for Asset #${form.asset_id}`,
+          description: form.description.trim() || undefined,
+          asset_id: form.asset_id || undefined,
+          component_id: form.component_id.trim() || undefined,
+          urgency_level: form.urgency_level,
+          is_blocking: form.is_blocking,
+          estimated_hours: parseFloat(form.estimated_hours) || 2,
+        };
+
+        await createWorkOrder(payload);
+        setSuccessMsg(`Component requisition successfully submitted for Asset #${form.asset_id || 'Fleet'}.`);
+      }
+
       await loadData();
     } catch (err) {
       setErrorMsg(err.message || 'Failed to submit request.');
@@ -128,8 +192,13 @@ export default function RequestPage() {
     }
   };
 
+  const handleStatusUpdate = (reqId, newStatus) => {
+    updateResourceRequestStatus(reqId, newStatus);
+    setResourceRequests(getResourceRequests());
+  };
+
   return (
-    <NavBar title="Component & Maintenance Requests" onBack={() => router.push('/dashboard')}>
+    <NavBar title="Resource Requisitions & Supply Requests" onBack={() => router.push('/dashboard')}>
       <div className="space-y-6">
 
         {/* Title Header Banner */}
@@ -139,15 +208,15 @@ export default function RequestPage() {
               SUPPLY & LOGISTICS REQUISITION
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans">
-              Component Requests
+              Resource Requests
             </h1>
             <p className="text-xs sm:text-sm text-[#566b5c] dark:text-slate-400 max-w-2xl">
-              Request component replacements, specialized parts, and maintenance work orders for specific fleet assets across airbases.
+              Request supplies, specialized components, and logistics support from sector resource facilities with strict user-to-user privacy protection.
             </p>
           </div>
         </div>
 
-        {/* Main Grid: Form Left (7 Cols) + Asset Selection Cards Right (5 Cols) */}
+        {/* Main Grid: Form Left (7 Cols) + Asset Selection / Resource Info Right (5 Cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Left Form Panel */}
@@ -155,25 +224,49 @@ export default function RequestPage() {
             <div className="flex items-center gap-2.5 pb-4 border-b border-[#1e4d35]/15 dark:border-slate-800">
               <Wrench className="w-5 h-5 text-[#1e4d35] dark:text-[#4e9f76]" />
               <h2 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100 uppercase tracking-wider">
-                Submit New Component Request
+                {selectedProvider ? 'Send Resource Request to Support Facility' : 'Submit Component Requisition'}
               </h2>
             </div>
 
-            {selectedOrigin && (
+            {/* Target Provider Banner */}
+            {selectedProvider && (
+              <div className="p-3.5 rounded-xl bg-teal-500/15 border border-teal-500/40 text-[#122018] dark:text-slate-100 flex items-start justify-between gap-3 shadow-sm">
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-teal-600 dark:text-teal-300">
+                    TARGET RESOURCE SUPPORT PROVIDER
+                  </span>
+                  <p className="text-xs font-mono font-bold text-teal-700 dark:text-teal-200 mt-0.5">
+                    🛡️ {selectedProvider.facility}
+                  </p>
+                  <p className="text-[11px] font-mono text-[#566b5c] dark:text-slate-300 mt-0.5">
+                    📍 Destination Base: {selectedProvider.location}
+                  </p>
+                  <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">
+                    🔒 Provider private aircraft fleet status remains strictly hidden
+                  </p>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-700 text-white font-semibold shrink-0">
+                  PROVIDER TARGET
+                </span>
+              </div>
+            )}
+
+            {/* Target Own Asset Banner */}
+            {!selectedProvider && selectedOrigin && (
               <div className="p-3.5 rounded-xl bg-[#e1eadf] dark:bg-[#1e4d35]/30 border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 text-[#122018] dark:text-slate-100 flex items-start justify-between gap-3 shadow-sm">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1e4d35] dark:text-emerald-400">
-                    ORIGINATING FLEET LOCATION
+                    MY FLEET ASSET LOCATION
                   </span>
                   <p className="text-xs font-mono font-bold text-[#1e4d35] dark:text-emerald-300 mt-0.5">
-                    {selectedOrigin.aircraft} ({selectedOrigin.asset_id})
+                    ✈️ {selectedOrigin.aircraft} ({selectedOrigin.asset_id})
                   </p>
                   <p className="text-xs font-mono text-[#566b5c] dark:text-slate-300 mt-0.5">
                     📍 {selectedOrigin.location}
                   </p>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1e4d35] text-white font-semibold shrink-0">
-                  AUTO-SELECTED
+                  OWN FLEET
                 </span>
               </div>
             )}
@@ -194,98 +287,112 @@ export default function RequestPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* Select Target Asset */}
+              {selectedProvider ? (
+                /* Resource Request Form Controls */
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
+                        Resource / Supply Required *
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={form.resource_name}
+                        onChange={(e) => setField('resource_name', e.target.value)}
+                        placeholder="e.g., Hydraulic Fluid (MIL-PRF-83282)"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
+                        Quantity Required *
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        value={form.quantity}
+                        onChange={(e) => setField('quantity', e.target.value)}
+                        placeholder="e.g., 20 units"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
+                      Urgency Priority
+                    </label>
+                    <select
+                      value={form.urgency_level}
+                      onChange={(e) => setField('urgency_level', e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
+                    >
+                      <option value="IMMEDIATE">IMMEDIATE (Critical Operational Priority)</option>
+                      <option value="URGENT">URGENT (High Priority)</option>
+                      <option value="SCHEDULED">SCHEDULED (Normal Priority)</option>
+                      <option value="ROUTINE">ROUTINE (Low Priority)</option>
+                    </select>
+                  </div>
+                </>
+              ) : (
+                /* Internal Asset Requisition Controls */
+                <>
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
+                      Target Fleet Asset *
+                    </label>
+                    <select
+                      required
+                      value={form.asset_id}
+                      onChange={(e) => setField('asset_id', e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
+                    >
+                      <option value="">-- Select Own Fleet Aircraft --</option>
+                      {assets.map((a) => (
+                        <option key={a.id || a.asset_code} value={a.id || a.asset_code}>
+                          {a.asset_code} — {a.call_sign || a.asset_type} ({a.manufacturer || 'HAL'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
+                      Request Title *
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => setField('title', e.target.value)}
+                      placeholder="e.g., Main Rotor Shaft Hydraulic Seal Replacement"
+                      className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Description / Reason Field */}
               <div>
                 <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
-                  Target Fleet Asset / Location *
-                </label>
-                <select
-                  required
-                  value={form.asset_id}
-                  onChange={(e) => setField('asset_id', e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
-                >
-                  <option value="">-- Select Enrolled Aircraft / Vehicle --</option>
-                  {assets.map((a) => (
-                    <option key={a.id || a.asset_code} value={a.id || a.asset_code}>
-                      {a.asset_code} — {a.call_sign || a.asset_type} ({a.manufacturer || 'Fleet'})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Request Title */}
-              <div>
-                <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
-                  Request Title *
-                </label>
-                <input
-                  required
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setField('title', e.target.value)}
-                  placeholder="e.g., Main Rotor Shaft Hydraulic Seal Replacement"
-                  className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
-                />
-              </div>
-
-              {/* Component Code & Estimated Hours */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
-                    Component / Part ID
-                  </label>
-                  <input
-                    type="text"
-                    value={form.component_id}
-                    onChange={(e) => setField('component_id', e.target.value)}
-                    placeholder="e.g., CMP-ROTOR-99"
-                    className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
-                    Urgency Priority
-                  </label>
-                  <select
-                    value={form.urgency_level}
-                    onChange={(e) => setField('urgency_level', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
-                  >
-                    <option value="IMMEDIATE">IMMEDIATE (Critical Priority)</option>
-                    <option value="URGENT">URGENT (High Priority)</option>
-                    <option value="SCHEDULED">SCHEDULED (Normal Priority)</option>
-                    <option value="ROUTINE">ROUTINE (Low Priority)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#122018] dark:text-slate-300 mb-1">
-                  Technical Justification & Notes
+                  Reason & Technical Justification (Auto-Filled)
                 </label>
                 <textarea
                   rows={3}
                   value={form.description}
                   onChange={(e) => setField('description', e.target.value)}
-                  placeholder="Specify component part specifications, failure symptoms, or airbase delivery instructions..."
+                  placeholder="Specify resource specifications, delivery instructions, or failure symptoms..."
                   className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1e4d35] resize-none"
                 />
               </div>
 
-              {/* Options & Action Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-[#1e4d35]/15 dark:border-slate-800">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-[#122018] dark:text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={form.is_blocking}
-                    onChange={(e) => setField('is_blocking', e.target.checked)}
-                    className="rounded border-[#1e4d35]/40 text-[#1e4d35] focus:ring-0"
-                  />
-                  Blocks Mission Readiness
-                </label>
+              {/* Action Button */}
+              <div className="flex items-center justify-between gap-4 pt-3 border-t border-[#1e4d35]/15 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-[#566b5c] dark:text-slate-400">
+                  {selectedProvider ? '🔒 Privacy Protected Request' : '⚡ Direct Asset Work Order'}
+                </span>
 
                 <button
                   type="submit"
@@ -293,112 +400,164 @@ export default function RequestPage() {
                   className="px-6 py-3 rounded-xl bg-[#1e4d35] hover:bg-[#163a26] text-white font-mono font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  {saving ? 'Submitting Request…' : 'Submit Requisition'}
+                  {saving ? 'Sending...' : selectedProvider ? 'Send Resource Request' : 'Submit Requisition'}
                 </button>
               </div>
 
             </form>
           </div>
 
-          {/* Right 1-Click Quick Select Enrolled Asset Cards */}
+          {/* Right Panel: Requisition Quick Selection & Resource Info */}
           <div className="lg:col-span-5 space-y-4">
             <div className="dashboard-card-shape p-5 rounded-2xl">
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#1e4d35]/15 dark:border-slate-800">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#1e4d35] dark:text-[#4e9f76] flex items-center gap-2">
-                  <Plane className="w-4 h-4" /> 1-Click Asset Requisition
-                </span>
-                <span className="text-[10px] font-mono text-[#566b5c] dark:text-slate-400">
-                  Enrolled Fleet
+                  <PackageCheck className="w-4 h-4" /> Resource Request Guidance
                 </span>
               </div>
 
-              <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-                {assets.map((asset) => {
-                  const isSelected = form.asset_id === (asset.id || asset.asset_code);
-                  return (
-                    <div
-                      key={asset.id || asset.asset_code}
-                      onClick={() => handleAssetSelect(asset)}
-                      className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                        isSelected
-                          ? 'bg-[#1e4d35]/20 border-[#1e4d35] dark:bg-[#1e4d35]/40 dark:border-[#4e9f76]'
-                          : 'bg-[#f4f6ee]/60 dark:bg-[#0d1b13]/60 border-[#1e4d35]/20 hover:border-[#1e4d35]/50'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-xs font-mono text-[#122018] dark:text-slate-100">
-                            {asset.asset_code}
-                          </strong>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#e1eadf] dark:bg-[#122419] text-[#1e4d35] dark:text-emerald-300 border border-[#1e4d35]/20">
-                            {asset.call_sign || asset.asset_type}
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-sans text-[#566b5c] dark:text-slate-400 mt-0.5 truncate">
-                          {asset.description || `${asset.manufacturer} ${asset.model_number || ''}`}
-                        </p>
-                      </div>
+              <div className="space-y-3 text-xs font-mono text-[#566b5c] dark:text-slate-300 leading-relaxed">
+                <div className="p-3 rounded-xl bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/20">
+                  <strong className="text-[#1e4d35] dark:text-emerald-400 block mb-1">🔒 User-to-User Privacy Protection</strong>
+                  <p className="text-[11px] text-[#566b5c] dark:text-slate-400">
+                    Requesters cannot view provider internal fleet readiness, aircraft health, risk level, or available counts. Requests are processed purely as resource supply logistics.
+                  </p>
+                </div>
 
-                      <button
-                        type="button"
-                        className={`px-3 py-1 rounded-lg font-mono text-[11px] font-semibold transition-colors shrink-0 ${
-                          isSelected
-                            ? 'bg-[#1e4d35] text-white'
-                            : 'bg-[#e1eadf] text-[#1e4d35] dark:bg-slate-800 dark:text-slate-200 hover:bg-[#1e4d35] hover:text-white'
-                        }`}
-                      >
-                        {isSelected ? 'Selected' : 'Select'}
-                      </button>
-                    </div>
-                  );
-                })}
+                <div className="p-3 rounded-xl bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/20">
+                  <strong className="text-[#1e4d35] dark:text-emerald-400 block mb-1">⚡ Request Lifecycle</strong>
+                  <p className="text-[11px] text-[#566b5c] dark:text-slate-400">
+                    Submitted requests enter <span className="text-amber-400 font-bold">PENDING</span> status. The provider receives the requisition and can Approve, Reject, or Fulfill it based on operational availability.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
         </div>
 
-        {/* Bottom Active Requests Table */}
+        {/* Section 1: User-to-User Resource Requests Table */}
         <div className="dashboard-card-shape p-6 rounded-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-[#1e4d35]/15 dark:border-slate-800 pb-3">
-            <h3 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100 uppercase tracking-wider">
-              Submitted Component Requisitions ({workOrders.length})
-            </h3>
+          <div className="flex items-center justify-between border-b border-[#1e4d35]/15 dark:border-slate-800 pb-3 flex-wrap gap-2">
+            <div>
+              <h3 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100 uppercase tracking-wider">
+                User-to-User Resource Requests ({resourceRequests.length})
+              </h3>
+              <p className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mt-0.5">
+                Privacy-protected supply requisitions between requester and provider facilities
+              </p>
+            </div>
           </div>
 
           <div className="divide-y divide-[#1e4d35]/10 dark:divide-slate-800">
-            {workOrders.length === 0 ? (
+            {resourceRequests.length === 0 ? (
               <p className="py-6 text-xs font-mono text-[#566b5c] dark:text-slate-500 text-center">
-                No active component requests submitted.
+                No active resource requests.
               </p>
             ) : (
-              workOrders.map((wo) => (
-                <div key={wo.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#122018] dark:text-slate-100">{wo.title}</span>
-                      <span className="text-[#566b5c] dark:text-slate-400">[{wo.asset_id || 'Fleet'}]</span>
+              resourceRequests.map((req) => (
+                <div key={req.id} className="py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs font-mono">
+                  <div className="space-y-1 max-w-xl">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-[#122018] dark:text-slate-100 text-sm">{req.resource_name}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1e4d35]/20 text-[#1e4d35] dark:bg-[#1e4d35]/50 dark:text-emerald-300">
+                        {req.quantity}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${URGENCY_BADGES[req.priority] || URGENCY_BADGES.SCHEDULED}`}>
+                        {req.priority}
+                      </span>
                     </div>
-                    {wo.description && (
-                      <p className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mt-1">
-                        📍 {wo.description}
-                      </p>
-                    )}
+
+                    <p className="text-[11px] text-[#566b5c] dark:text-slate-300">
+                      <strong>From:</strong> {req.requester_name} &nbsp;→&nbsp; <strong>To:</strong> {req.provider_facility}
+                    </p>
+
+                    <p className="text-[10px] text-[#566b5c] dark:text-slate-400 italic">
+                      &quot;{req.reason}&quot;
+                    </p>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${URGENCY_BADGES[wo.urgency_level] || URGENCY_BADGES.SCHEDULED}`}>
-                      {wo.urgency_level || 'SCHEDULED'}
+                  <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_BADGES[req.status] || STATUS_BADGES.PENDING}`}>
+                      {req.status}
                     </span>
-                    <span className="text-[#566b5c] dark:text-slate-400">
-                      {wo.status || wo.maintenance_state || 'SUBMITTED'}
-                    </span>
+
+                    {/* Provider Actions if User B views or tests provider role */}
+                    {req.status === 'PENDING' && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleStatusUpdate(req.id, 'APPROVED')}
+                          className="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-bold transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(req.id, 'FULFILLED')}
+                          className="px-2.5 py-1 rounded bg-cyan-700 hover:bg-cyan-800 text-white text-[10px] font-bold transition-colors"
+                        >
+                          Fulfill
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(req.id, 'REJECTED')}
+                          className="px-2.5 py-1 rounded bg-red-700 hover:bg-red-800 text-white text-[10px] font-bold transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
             )}
           </div>
         </div>
+
+        {/* Section 2: Submitted Work Order Requisitions Table */}
+        {(() => {
+          const safeWorkOrders = Array.isArray(workOrders) ? workOrders : [];
+          return (
+            <div className="dashboard-card-shape p-6 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#1e4d35]/15 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100 uppercase tracking-wider">
+                  Work Order Requisitions ({safeWorkOrders.length})
+                </h3>
+              </div>
+
+              <div className="divide-y divide-[#1e4d35]/10 dark:divide-slate-800">
+                {safeWorkOrders.length === 0 ? (
+                  <p className="py-6 text-xs font-mono text-[#566b5c] dark:text-slate-500 text-center">
+                    No active work order requisitions.
+                  </p>
+                ) : (
+                  safeWorkOrders.map((wo) => (
+                    <div key={wo.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#122018] dark:text-slate-100">{wo.title}</span>
+                          <span className="text-[#566b5c] dark:text-slate-400">[{wo.asset_id || 'Fleet'}]</span>
+                        </div>
+                        {wo.description && (
+                          <p className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mt-1">
+                            📍 {wo.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${URGENCY_BADGES[wo.urgency_level] || URGENCY_BADGES.SCHEDULED}`}>
+                          {wo.urgency_level || 'SCHEDULED'}
+                        </span>
+                        <span className="text-[#566b5c] dark:text-slate-400">
+                          {wo.status || wo.maintenance_state || 'SUBMITTED'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </NavBar>

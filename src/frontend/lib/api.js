@@ -171,7 +171,8 @@ function getEnrolledFallback(path) {
   if (path.startsWith('/readiness/all')) return DEMO_ENROLLED_READINESS;
   if (path.startsWith('/readiness')) return DEMO_ENROLLED_SUMMARY;
   if (path.startsWith('/alerts')) return DEMO_ENROLLED_ALERTS;
-  if (path.startsWith('/maintenance')) return DEMO_ENROLLED_QUEUE;
+  if (path.startsWith('/maintenance/queue')) return DEMO_ENROLLED_QUEUE;
+  if (path.startsWith('/maintenance')) return DEMO_ENROLLED_QUEUE.items;
   if (path.startsWith('/missions')) return DEMO_ENROLLED_MISSIONS;
   return null;
 }
@@ -441,4 +442,80 @@ export function listModels() {
 
 export function getModel(tag) {
   return request(`/models/${encodeURIComponent(tag)}`);
+}
+
+// ─── Resource Request & User Privacy API ──────────────────────────────────────
+
+const DEMO_RESOURCE_REQUESTS = [
+  {
+    id: 'req_101',
+    requester_id: 'usr_operator_bengaluru',
+    requester_name: 'Tulsi (HAL Bengaluru Base)',
+    requester_location: 'HAL Airport Base, Bengaluru, Karnataka, India',
+    provider_id: 'usr_provider_pune',
+    provider_facility: 'Lohegaon Resource Support Facility, Pune, Maharashtra, India',
+    resource_name: 'Hydraulic Fluid (MIL-PRF-83282)',
+    quantity: '20 units',
+    priority: 'URGENT',
+    reason: 'Scheduled maintenance requirement for LCA Tejas',
+    status: 'PENDING',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'req_102',
+    requester_id: 'usr_operator_bengaluru',
+    requester_name: 'Tulsi (HAL Bengaluru Base)',
+    requester_location: 'HAL Airport Base, Bengaluru, Karnataka, India',
+    provider_id: 'usr_provider_ambala',
+    provider_facility: 'Ambala Resource Base, Punjab, India',
+    resource_name: 'Avionics Radar Sensor Module',
+    quantity: '1 unit',
+    priority: 'IMMEDIATE',
+    reason: 'Radar transceiver replacement requirement',
+    status: 'APPROVED',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  }
+];
+
+export function getResourceRequests() {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('missionready_resource_requests');
+    if (stored) {
+      try { return JSON.parse(stored); } catch {}
+    }
+  }
+  return DEMO_RESOURCE_REQUESTS;
+}
+
+export function createResourceRequest(data) {
+  const existing = getResourceRequests();
+  const newReq = {
+    id: `req_${Date.now()}`,
+    requester_id: data.requester_id || 'usr_operator_bengaluru',
+    requester_name: data.requester_name || 'Tulsi (Bengaluru Base)',
+    requester_location: data.requester_location || 'HAL Airport Base, Bengaluru, Karnataka, India',
+    provider_id: data.provider_id || 'usr_provider_facility',
+    provider_facility: data.provider_facility || 'Resource Support Facility',
+    resource_name: data.resource_name || 'Supplies',
+    quantity: data.quantity || '1',
+    priority: data.priority || 'SCHEDULED',
+    reason: data.reason || 'Operational resource request',
+    status: 'PENDING',
+    created_at: new Date().toISOString(),
+  };
+
+  const updated = [newReq, ...existing];
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('missionready_resource_requests', JSON.stringify(updated));
+  }
+  return newReq;
+}
+
+export function updateResourceRequestStatus(reqId, newStatus) {
+  const existing = getResourceRequests();
+  const updated = existing.map((r) => r.id === reqId ? { ...r, status: newStatus } : r);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('missionready_resource_requests', JSON.stringify(updated));
+  }
+  return updated;
 }
