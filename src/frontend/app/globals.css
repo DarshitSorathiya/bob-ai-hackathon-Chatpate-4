@@ -1,3 +1,5 @@
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -140,4 +142,33 @@ html.dark input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px #0d1b13 inset !important;
   -webkit-text-fill-color: #f1f5f9 !important;
   border-color: rgba(78, 159, 118, 0.4) !important;
+}
+
+/* Military Leaflet Aerospace Tooltip & Marker Overrides */
+.military-leaflet-tooltip {
+  background-color: rgba(10, 21, 15, 0.95) !important;
+  border: 1px solid rgba(78, 159, 118, 0.4) !important;
+  border-radius: 0.75rem !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px) !important;
+  padding: 8px 12px !important;
+}
+
+.military-leaflet-tooltip::before {
+  border-top-color: rgba(10, 21, 15, 0.95) !important;
+}
+
+.leaflet-user-loc-icon, .leaflet-fleet-dot-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Free OpenStreetMap Dark Aerospace Tile Overlay Filter */
+html.dark .dark-aerospace-map .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.dark-aerospace-map .leaflet-tile-pane {
+  filter: invert(90%) hue-rotate(180deg) brightness(90%) contrast(95%);
 }

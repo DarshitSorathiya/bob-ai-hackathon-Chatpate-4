@@ -32,18 +32,31 @@ export default function RequestPage() {
     estimated_hours: '2',
   });
 
-  // Handle URL query parameters for preselected asset
+  const [selectedOrigin, setSelectedOrigin] = useState(null);
+
+  // Handle URL query parameters for preselected asset & location
   useEffect(() => {
     if (!isAuthenticated()) { router.replace('/login'); return; }
 
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const assetId = params.get('asset_id');
-      if (assetId) {
+      const locName = params.get('location');
+      const aircraftName = params.get('aircraft');
+
+      if (assetId || locName) {
+        const originObj = {
+          asset_id: assetId || 'TJS-014',
+          location: locName || 'HAL Airport Base, Bengaluru, Karnataka, India',
+          aircraft: aircraftName || 'HAL Tejas Mk1A',
+        };
+        setSelectedOrigin(originObj);
+
         setForm((f) => ({
           ...f,
-          asset_id: assetId,
-          title: f.title || `Component Request — Asset #${assetId}`,
+          asset_id: assetId || f.asset_id,
+          title: f.title || `Component Request — ${originObj.aircraft} (${originObj.asset_id})`,
+          description: f.description || `Component requested for ${originObj.aircraft} (${originObj.asset_id}) stationed at ${originObj.location}.`,
         }));
       }
     }
@@ -145,6 +158,25 @@ export default function RequestPage() {
                 Submit New Component Request
               </h2>
             </div>
+
+            {selectedOrigin && (
+              <div className="p-3.5 rounded-xl bg-[#e1eadf] dark:bg-[#1e4d35]/30 border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 text-[#122018] dark:text-slate-100 flex items-start justify-between gap-3 shadow-sm">
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1e4d35] dark:text-emerald-400">
+                    ORIGINATING FLEET LOCATION
+                  </span>
+                  <p className="text-xs font-mono font-bold text-[#1e4d35] dark:text-emerald-300 mt-0.5">
+                    {selectedOrigin.aircraft} ({selectedOrigin.asset_id})
+                  </p>
+                  <p className="text-xs font-mono text-[#566b5c] dark:text-slate-300 mt-0.5">
+                    📍 {selectedOrigin.location}
+                  </p>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1e4d35] text-white font-semibold shrink-0">
+                  AUTO-SELECTED
+                </span>
+              </div>
+            )}
 
             {successMsg && (
               <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center gap-2">
@@ -343,11 +375,18 @@ export default function RequestPage() {
               workOrders.map((wo) => (
                 <div key={wo.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
                   <div>
-                    <span className="font-bold text-[#122018] dark:text-slate-100">{wo.title}</span>
-                    <span className="text-[#566b5c] dark:text-slate-400 ml-2">[{wo.asset_id || 'Fleet'}]</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[#122018] dark:text-slate-100">{wo.title}</span>
+                      <span className="text-[#566b5c] dark:text-slate-400">[{wo.asset_id || 'Fleet'}]</span>
+                    </div>
+                    {wo.description && (
+                      <p className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mt-1">
+                        📍 {wo.description}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${URGENCY_BADGES[wo.urgency_level] || URGENCY_BADGES.SCHEDULED}`}>
                       {wo.urgency_level || 'SCHEDULED'}
                     </span>

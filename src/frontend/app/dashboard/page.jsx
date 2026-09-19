@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import TopNavbar from '../../components/TopNavbar';
 import FleetRadarScope from '../../components/FleetRadarScope';
-import FleetGoogleMap from '../../components/FleetGoogleMap';
+import FleetLeafletMap from '../../components/FleetLeafletMap';
 import {
   getUser, isAuthenticated,
   getFleetReadinessSummary, listAssets, getAllReadiness,
@@ -324,7 +324,7 @@ export default function DashboardPage() {
 
         {/* 4. Fleet Geospatial Operations Map Section directly below Fleet Status Overview */}
         <div className="pt-2">
-          <FleetGoogleMap assets={assets} readinessMap={readinessMap} />
+          <FleetLeafletMap assets={assets} readinessMap={readinessMap} />
         </div>
 
       </main>
