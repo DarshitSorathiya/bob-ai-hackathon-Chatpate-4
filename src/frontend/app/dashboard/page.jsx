@@ -64,14 +64,6 @@ export default function DashboardPage() {
   const [missions, setMissions]                 = useState([]);
   const [loadingData, setLoadingData]           = useState(true);
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace('/login');
-      return;
-    }
-    setUser(getUser());
-  }, [router]);
-
   const fetchAll = useCallback(async () => {
     setLoadingData(true);
     try {
@@ -97,6 +89,15 @@ export default function DashboardPage() {
       setLoadingData(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace('/login');
+      return;
+    }
+    setUser(getUser());
+    fetchAll();
+  }, [router, fetchAll]);
 
   // Dynamic status counts computed directly from enrolled assets and readiness evaluations
   const counts = React.useMemo(() => {
