@@ -67,16 +67,16 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
       {/* Header matching Picture 1 */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-400 light:text-blue-700 block mb-1">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1e4d35] dark:text-[#4e9f76] block mb-1">
             FLEET READINESS
           </span>
-          <h2 className="text-lg font-bold font-sans text-slate-100 dark:text-slate-100 light:text-slate-900">
+          <h2 className="text-lg font-bold font-sans text-[#122018] dark:text-slate-100">
             Fleet Status Overview
           </h2>
         </div>
         <Link
           href="/assets"
-          className="px-4 py-1.5 rounded-full border border-blue-500/30 dark:border-blue-500/30 light:border-blue-300 bg-blue-950/40 dark:bg-blue-950/40 light:bg-blue-50 text-xs font-mono text-blue-400 light:text-blue-600 hover:bg-blue-600/20 light:hover:bg-blue-100 transition-colors flex items-center gap-1"
+          className="px-4 py-1.5 rounded-full border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 bg-[#e1eadf] dark:bg-[#1e4d35]/40 text-xs font-mono text-[#1e4d35] dark:text-[#4e9f76] hover:bg-[#1e4d35] hover:text-white transition-colors flex items-center gap-1"
         >
           View All →
         </Link>
@@ -86,12 +86,12 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-auto py-2">
         {/* Radar Scope */}
         <div className="relative w-60 h-60 mx-auto shrink-0 flex items-center justify-center">
-          <svg viewBox="0 0 280 280" className="w-full h-full text-blue-400/25 light:text-blue-600/30">
+          <svg viewBox="0 0 280 280" className="w-full h-full text-[#1e4d35]/30 dark:text-[#4e9f76]/40">
             <defs>
               <radialGradient id="sweepGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.25" />
-                <stop offset="80%" stopColor="#38bdf8" stopOpacity="0.05" />
-                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                <stop offset="0%" stopColor="#4e9f76" stopOpacity="0.3" />
+                <stop offset="80%" stopColor="#4e9f76" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#4e9f76" stopOpacity="0" />
               </radialGradient>
             </defs>
 
@@ -106,9 +106,9 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
             <line x1="10" y1="140" x2="270" y2="140" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
 
             {/* Rotating Beam */}
-            <g className="origin-center animate-[spin_8s_linear_infinite]">
+            <g className="origin-center animate-[spin_14s_linear_infinite]">
               <path d="M 140 140 L 140 15 A 125 125 0 0 1 228 52 Z" fill="url(#sweepGrad)" />
-              <line x1="140" y1="140" x2="140" y2="15" stroke="#38bdf8" strokeWidth="1.5" opacity="0.8" />
+              <line x1="140" y1="140" x2="140" y2="15" stroke="#4e9f76" strokeWidth="1.5" opacity="0.8" />
             </g>
 
             {/* Target Blips */}
@@ -122,14 +122,14 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
                   className={t.status === 'AT_RISK' || t.status === 'NOT_READY' ? 'animate-ping' : ''}
                   style={{ animationDuration: '3s' }}
                 />
-                <circle cx={t.cx} cy={t.cy} r="3.5" fill={t.colors.dot} stroke="#040814" strokeWidth="1" />
+                <circle cx={t.cx} cy={t.cy} r="3.5" fill={t.colors.dot} stroke="#122018" strokeWidth="1" />
               </g>
             ))}
           </svg>
 
           {/* Center Airplane Silhouette matching Picture 1 */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="relative w-12 h-12 filter drop-shadow-[0_0_12px_rgba(56,189,248,0.9)]">
+            <div className="relative w-6 h-6 filter drop-shadow-[0_0_8px_rgba(78,159,118,0.8)]">
               <Image
                 src="/images/aircraft.png"
                 alt="Fleet Radar Center"
@@ -144,18 +144,18 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
         <div className="space-y-6 font-mono text-xs w-full pl-0 md:pl-2">
           {/* Row 1: Ready */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-slate-200 dark:text-slate-200 light:text-slate-800">
+            <div className="flex items-center justify-between text-[#122018] dark:text-slate-200">
               <span className="flex items-center gap-2.5 font-semibold text-sm">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2d9f6f] shadow-sm shadow-[#2d9f6f]/50" />
                 Ready
               </span>
-              <span className="text-base font-extrabold text-slate-100 dark:text-slate-100 light:text-slate-900 font-mono">
+              <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
                 {loadingData ? '18' : (counts.READY ?? 18)}
               </span>
             </div>
-            <div className="w-full bg-[#050b18] dark:bg-[#050b18] light:bg-slate-200 rounded-full h-2 overflow-hidden border border-blue-900/30 dark:border-blue-900/30 light:border-slate-300">
+            <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">
               <div
-                className="bg-emerald-400 h-full rounded-full transition-all duration-500 shadow-sm shadow-emerald-400/50"
+                className="bg-[#2d9f6f] h-full rounded-full transition-all duration-500 shadow-sm shadow-[#2d9f6f]/50"
                 style={{ width: `${readyPercent}%` }}
               />
             </div>
@@ -163,18 +163,18 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
 
           {/* Row 2: At Risk */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-slate-200 dark:text-slate-200 light:text-slate-800">
+            <div className="flex items-center justify-between text-[#122018] dark:text-slate-200">
               <span className="flex items-center gap-2.5 font-semibold text-sm">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
                 At Risk
               </span>
-              <span className="text-base font-extrabold text-slate-100 dark:text-slate-100 light:text-slate-900 font-mono">
+              <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
                 {loadingData ? '4' : (counts.AT_RISK ?? 4)}
               </span>
             </div>
-            <div className="w-full bg-[#050b18] dark:bg-[#050b18] light:bg-slate-200 rounded-full h-2 overflow-hidden border border-blue-900/30 dark:border-blue-900/30 light:border-slate-300">
+            <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">
               <div
-                className="bg-amber-400 h-full rounded-full transition-all duration-500 shadow-sm shadow-amber-400/50"
+                className="bg-amber-500 h-full rounded-full transition-all duration-500 shadow-sm shadow-amber-500/50"
                 style={{ width: `${atRiskPercent}%` }}
               />
             </div>
@@ -182,18 +182,18 @@ export default function FleetRadarScope({ assets = [], readinessMap = {}, loadin
 
           {/* Row 3: Not Ready */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-slate-200 dark:text-slate-200 light:text-slate-800">
+            <div className="flex items-center justify-between text-[#122018] dark:text-slate-200">
               <span className="flex items-center gap-2.5 font-semibold text-sm">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-400 shadow-sm shadow-red-400/50" />
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50" />
                 Not Ready
               </span>
-              <span className="text-base font-extrabold text-slate-100 dark:text-slate-100 light:text-slate-900 font-mono">
+              <span className="text-base font-extrabold text-[#122018] dark:text-slate-100 font-mono">
                 {loadingData ? '3' : (counts.NOT_READY ?? 3)}
               </span>
             </div>
-            <div className="w-full bg-[#050b18] dark:bg-[#050b18] light:bg-slate-200 rounded-full h-2 overflow-hidden border border-blue-900/30 dark:border-blue-900/30 light:border-slate-300">
+            <div className="w-full bg-[#e1eadf] dark:bg-[#0d1b13] rounded-full h-2 overflow-hidden border border-[#1e4d35]/20 dark:border-[#4e9f76]/30">
               <div
-                className="bg-red-400 h-full rounded-full transition-all duration-500 shadow-sm shadow-red-400/50"
+                className="bg-red-500 h-full rounded-full transition-all duration-500 shadow-sm shadow-red-500/50"
                 style={{ width: `${notReadyPercent}%` }}
               />
             </div>

@@ -28,7 +28,7 @@ function SeverityBadge({ severity }) {
   const m = {
     critical: 'text-red-400 bg-red-500/10 border-red-500/30',
     warning:  'text-amber-400 bg-amber-500/10 border-amber-500/30',
-    info:     'text-blue-400 bg-blue-500/10 border-blue-500/30',
+    info:     'text-[#1e4d35] bg-[#e1eadf] border-[#1e4d35]/30 dark:text-emerald-300 dark:bg-[#1e4d35]/30',
   };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border uppercase ${m[severity] || m.info}`}>
@@ -86,15 +86,15 @@ export default function AssetDetailPage({ params }) {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#030712] flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+    <div className="min-h-screen bg-[#f4f6ee] dark:bg-[#030712] flex items-center justify-center">
+      <Loader2 className="w-8 h-8 text-[#1e4d35] dark:text-emerald-400 animate-spin" />
     </div>
   );
 
   if (notFound || !asset) return (
-    <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center gap-4">
-      <p className="text-slate-400 font-mono">Asset not found.</p>
-      <button onClick={() => router.push('/assets')} className="text-blue-400 hover:text-blue-300 text-sm font-mono flex items-center gap-1">
+    <div className="min-h-screen bg-[#f4f6ee] dark:bg-[#030712] flex flex-col items-center justify-center gap-4">
+      <p className="text-[#566b5c] dark:text-slate-400 font-mono">Asset not found.</p>
+      <button onClick={() => router.push('/assets')} className="text-[#1e4d35] dark:text-emerald-400 hover:underline text-sm font-mono flex items-center gap-1">
         <ArrowLeft className="w-4 h-4" /> Back to Assets
       </button>
     </div>
@@ -109,21 +109,21 @@ export default function AssetDetailPage({ params }) {
       value: rulPred?.rul_estimate != null ? `${rulPred.rul_estimate.toFixed(1)} h` : 'No prediction',
       sub: rulPred?.confidence != null ? `${Math.round(rulPred.confidence * 100)}% confidence` : 'Awaiting model history',
       icon: Activity,
-      color: 'text-blue-400',
+      color: 'text-[#1e4d35] dark:text-emerald-400',
     },
     {
       label: 'Failure Risk (24h)',
       value: failPred?.failure_probability != null ? `${Math.round(failPred.failure_probability * 100)}%` : 'No prediction',
       sub: failPred?.confidence != null ? `${Math.round(failPred.confidence * 100)}% confidence` : 'Awaiting model history',
       icon: AlertTriangle,
-      color: (failPred?.failure_probability || 0) > 0.3 ? 'text-red-400' : 'text-emerald-400',
+      color: (failPred?.failure_probability || 0) > 0.3 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400',
     },
     {
       label: 'Readiness Engine',
       value: readiness?.status || 'UNKNOWN',
       sub: readiness?.confidence != null ? `${Math.round(readiness.confidence * 100)}% confidence` : 'Awaiting evaluation',
       icon: Shield,
-      color: (readiness?.status || 'UNKNOWN') === 'READY' ? 'text-emerald-400' : 'text-amber-400',
+      color: (readiness?.status || 'UNKNOWN') === 'READY' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500',
     },
   ];
 
@@ -135,11 +135,11 @@ export default function AssetDetailPage({ params }) {
           <div className="flex items-start justify-between gap-6 flex-wrap">
             <div className="space-y-1.5">
               <div className="flex items-center gap-3 flex-wrap">
-                <Plane className="w-6 h-6 text-blue-400" />
-                <h1 className="text-3xl font-extrabold font-mono text-slate-100">{asset.asset_code}</h1>
+                <Plane className="w-6 h-6 text-[#1e4d35] dark:text-emerald-400" />
+                <h1 className="text-3xl font-extrabold font-mono text-[#122018] dark:text-slate-100">{asset.asset_code}</h1>
                 <StatusBadge status={readiness?.status || 'READY'} />
               </div>
-              <p className="text-slate-300 text-sm font-medium">
+              <p className="text-[#566b5c] dark:text-slate-300 text-sm font-medium">
                 {asset.asset_type}{asset.call_sign ? ` — ${asset.call_sign}` : ''}
                 {asset.manufacturer ? ` · ${asset.manufacturer}` : ''}
               </p>
@@ -151,18 +151,18 @@ export default function AssetDetailPage({ params }) {
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="text-right bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800">
-                <p className="text-xs text-slate-400 font-mono">Total Hours</p>
-                <p className="text-2xl font-bold font-mono text-slate-100 tabular-nums">{asset.total_hours?.toFixed(0) ?? '1420'}</p>
+              <div className="text-right bg-[#e1eadf]/40 dark:bg-slate-950/60 px-4 py-2 rounded-xl border border-[#1e4d35]/20 dark:border-slate-800">
+                <p className="text-xs text-[#566b5c] dark:text-slate-400 font-mono">Total Hours</p>
+                <p className="text-2xl font-bold font-mono text-[#122018] dark:text-slate-100 tabular-nums">{asset.total_hours?.toFixed(0) ?? '1420'}</p>
               </div>
-              <div className="text-right bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800">
-                <p className="text-xs text-slate-400 font-mono">Confidence</p>
-                <p className="text-2xl font-bold font-mono text-slate-100 tabular-nums">{readiness?.confidence != null ? `${Math.round(readiness.confidence * 100)}%` : '96%'}</p>
+              <div className="text-right bg-[#e1eadf]/40 dark:bg-slate-950/60 px-4 py-2 rounded-xl border border-[#1e4d35]/20 dark:border-slate-800">
+                <p className="text-xs text-[#566b5c] dark:text-slate-400 font-mono">Confidence</p>
+                <p className="text-2xl font-bold font-mono text-[#122018] dark:text-slate-100 tabular-nums">{readiness?.confidence != null ? `${Math.round(readiness.confidence * 100)}%` : '96%'}</p>
               </div>
               <button
                 onClick={handleEvaluate}
                 disabled={evaluating}
-                className="flex items-center gap-2 text-xs font-mono font-bold text-blue-300 hover:text-blue-200 px-4 py-3 rounded-xl border border-blue-500/30 hover:border-blue-400/50 bg-blue-600/20 disabled:opacity-50 transition-all shadow-md"
+                className="flex items-center gap-2 text-xs font-mono font-bold text-white px-4 py-3 rounded-xl border border-[#1e4d35] bg-[#1e4d35] hover:bg-[#163a26] disabled:opacity-50 transition-all shadow-md"
               >
                 <RefreshCw className={`w-4 h-4 ${evaluating ? 'animate-spin' : ''}`} />
                 Re-evaluate

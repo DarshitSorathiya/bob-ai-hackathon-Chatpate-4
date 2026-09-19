@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 241, 245, 249;
-  --background-rgb: 3, 7, 18;
-  --card-bg: rgba(5, 11, 24, 0.85);
-  --card-border: rgba(255, 255, 255, 0.2);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --foreground-rgb: 18, 32, 24;
+  --background-rgb: 244, 246, 238;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-border: rgba(30, 77, 53, 0.22);
+  --card-shadow: 0 10px 25px -5px rgba(30, 77, 53, 0.08), 0 8px 10px -6px rgba(30, 77, 53, 0.04);
 }
 
-html.light {
-  --foreground-rgb: 15, 23, 42;
-  --background-rgb: 248, 250, 252;
-  --card-bg: rgba(255, 255, 255, 0.95);
-  --card-border: rgba(203, 213, 225, 0.8);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+html.dark {
+  --foreground-rgb: 241, 245, 249;
+  --background-rgb: 13, 27, 19;
+  --card-bg: rgba(18, 36, 25, 0.92);
+  --card-border: rgba(78, 159, 118, 0.25);
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 body {
@@ -27,9 +27,20 @@ body {
   overflow-x: hidden;
 }
 
-html.light body {
-  background-color: #f8fafc;
-  color: #0f172a;
+body {
+  background-color: #f4f6ee;
+  color: #122018;
+}
+
+html.dark body {
+  background-color: #0d1b13;
+  color: #f1f5f9;
+}
+
+/* Selection Highlight */
+::selection {
+  background-color: rgba(30, 77, 53, 0.25);
+  color: #1e4d35;
 }
 
 /* Ensure Grid & Flex Layouts Match Picture 1 Perfectly */
@@ -84,15 +95,49 @@ html.light body {
 }
 
 .dashboard-card-shape:hover {
-  border-color: rgba(59, 130, 246, 0.45) !important;
+  border-color: rgba(30, 77, 53, 0.45) !important;
 }
 
-html.light .dashboard-card-shape {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(203, 213, 225, 0.9) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+html.dark .dashboard-card-shape {
+  background-color: rgba(18, 36, 25, 0.92) !important;
+  border: 1px solid rgba(78, 159, 118, 0.25) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
 }
 
-html.light .dashboard-card-shape:hover {
-  border-color: rgba(37, 99, 235, 0.5) !important;
+html.dark .dashboard-card-shape:hover {
+  border-color: rgba(78, 159, 118, 0.5) !important;
+}
+
+/* Slower Smooth Aircraft Floating Animation */
+@keyframes smoothFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-smooth-float {
+  animation: smoothFloat 6s ease-in-out infinite;
+}
+
+/* Chrome & Edge Input Autofill Override (replaces default sky-blue input fill with Tactical Sage Green) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #f4f6ee inset !important;
+  -webkit-text-fill-color: #122018 !important;
+  border-color: rgba(30, 77, 53, 0.4) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #0d1b13 inset !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  border-color: rgba(78, 159, 118, 0.4) !important;
 }

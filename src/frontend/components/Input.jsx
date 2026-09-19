@@ -23,7 +23,7 @@ export default function Input({
   return (
     <div className="space-y-1">
       {label && (
-        <label htmlFor={id} className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider">
+        <label htmlFor={id} className="block text-[11px] font-mono font-semibold text-[#122018] dark:text-slate-300 uppercase tracking-wider">
           {label} {required && <span className="text-red-400">*</span>}
         </label>
       )}
@@ -47,11 +47,11 @@ export default function Input({
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           className={`
-            block w-full rounded-lg border bg-[#070a12] text-slate-100 placeholder-slate-500 text-sm py-2.5 transition-colors font-sans
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            block w-full rounded-lg border bg-[#f4f6ee] dark:bg-[#0d1b13] text-[#122018] dark:text-slate-100 placeholder-[#566b5c]/60 dark:placeholder-slate-400 text-sm py-2.5 transition-all font-sans
+            focus:outline-none focus:ring-2 focus:ring-[#1e4d35] focus:bg-[#e1eadf] dark:focus:bg-[#122419] focus:border-transparent
             ${Icon ? 'pl-10' : 'pl-3.5'}
             ${isPasswordType ? 'pr-10' : 'pr-3.5'}
-            ${error ? 'border-red-500/80 focus:ring-red-500' : 'border-slate-800 hover:border-slate-700'}
+            ${error ? 'border-red-500/80 focus:ring-red-500' : 'border-[#1e4d35]/30 hover:border-[#1e4d35]/60'}
           `}
         />
 

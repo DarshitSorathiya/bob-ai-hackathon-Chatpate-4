@@ -24,13 +24,13 @@ function SummaryCard({ icon: Icon, title, subtitle, href, children }) {
     <div className="h-[165px] dashboard-card-shape p-5 flex flex-col justify-between group transition-all duration-200">
       {/* Top Header Row */}
       <div className="flex items-center justify-between gap-3">
-        <div className="w-11 h-11 rounded-full border border-blue-500/30 bg-blue-600/10 flex items-center justify-center text-blue-400 shrink-0 shadow-sm shadow-blue-500/10 group-hover:border-blue-400 transition-colors">
+        <div className="w-11 h-11 rounded-full border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 bg-[#e1eadf] dark:bg-[#1e4d35]/30 flex items-center justify-center text-[#1e4d35] dark:text-[#4e9f76] shrink-0 shadow-sm group-hover:border-[#1e4d35] transition-colors">
           <Icon className="w-5 h-5" />
         </div>
         {href && (
           <Link
             href={href}
-            className="w-8 h-8 rounded-full border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-600/20 hover:border-blue-400 transition-colors shrink-0"
+            className="w-8 h-8 rounded-full border border-[#1e4d35]/30 dark:border-[#4e9f76]/40 flex items-center justify-center text-[#1e4d35] dark:text-[#4e9f76] hover:bg-[#1e4d35] hover:text-white transition-colors shrink-0"
             title="View details"
           >
             <ChevronRight className="w-4 h-4" />
@@ -40,12 +40,12 @@ function SummaryCard({ icon: Icon, title, subtitle, href, children }) {
 
       {/* Middle Titles */}
       <div>
-        <h3 className="text-base font-bold font-sans text-slate-100 tracking-tight leading-tight">{title}</h3>
-        <p className="text-xs text-slate-400 font-normal mt-0.5">{subtitle}</p>
+        <h3 className="text-base font-bold font-sans text-[#122018] dark:text-slate-100 tracking-tight leading-tight">{title}</h3>
+        <p className="text-xs text-[#566b5c] dark:text-slate-400 font-normal mt-0.5">{subtitle}</p>
       </div>
 
       {/* Bottom Status Metrics */}
-      <div className="pt-2 border-t border-slate-800/40">
+      <div className="pt-2 border-t border-[#1e4d35]/15 dark:border-slate-800/60">
         {children}
       </div>
     </div>
@@ -102,9 +102,9 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-        <p className="text-xs font-mono text-slate-400 uppercase tracking-wider">Loading Mission Control...</p>
+      <div className="min-h-screen bg-[#f4f6ee] dark:bg-[#0d1b13] flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 text-[#1e4d35] dark:text-[#4e9f76] animate-spin" />
+        <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400 uppercase tracking-wider">Loading Mission Control...</p>
       </div>
     );
   }
@@ -122,18 +122,18 @@ export default function DashboardPage() {
     id: alert.id,
     icon: alert.severity === 'critical' ? AlertTriangle : Wrench,
     colorCls: alert.severity === 'critical'
-      ? 'bg-red-500/15 border-red-500/30 text-red-400'
-      : 'bg-amber-500/15 border-amber-500/30 text-amber-400',
+      ? 'bg-red-500/15 border-red-500/30 text-red-600 dark:text-red-400'
+      : 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400',
     title: alert.title,
     subtitle: alert.message,
     time: alert.created_at ? new Date(alert.created_at).toLocaleString() : 'Recently',
   }));
 
   return (
-    <div className="min-h-screen bg-[#030712] dark:bg-[#030712] light:bg-[#f8fafc] text-slate-100 dark:text-slate-100 light:text-slate-900 font-sans flex flex-col selection:bg-blue-600/30 transition-colors duration-200">
-      {/* Background Overlay Layer */}
-      <div className="fixed inset-0 bg-[url('/images/landing-bg.png')] bg-cover bg-center opacity-20 dark:opacity-20 light:opacity-5 pointer-events-none z-0" />
-      <div className="fixed inset-0 bg-gradient-to-b from-[#030712]/90 via-[#030712]/80 to-[#030712]/95 dark:from-[#030712]/90 dark:via-[#030712]/80 dark:to-[#030712]/95 light:from-slate-50/90 light:via-slate-100/80 light:to-slate-100/95 pointer-events-none z-0" />
+    <div className="min-h-screen bg-[#f4f6ee] dark:bg-[#0d1b13] text-[#122018] dark:text-slate-100 font-sans flex flex-col selection:bg-[#1e4d35]/30 transition-colors duration-200">
+      {/* 1. Background Overlay */}
+      <div className="fixed inset-0 bg-[url('/images/landing-pg.png')] bg-cover bg-center opacity-15 dark:opacity-20 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-gradient-to-b from-[#f4f6ee]/85 via-[#f4f6ee]/75 to-[#f4f6ee]/90 dark:from-[#0d1b13]/85 dark:via-[#0d1b13]/75 dark:to-[#0d1b13]/90 pointer-events-none z-0" />
 
       {/* Top Navbar Header matching Picture 1 */}
       <TopNavbar />
@@ -144,29 +144,29 @@ export default function DashboardPage() {
         {/* 1. Hero Title Section with HUD Corner Tagline matching Picture 1 */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pt-1">
           <div className="space-y-1.5">
-            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 dark:bg-blue-950/80 light:bg-blue-100 text-blue-400 dark:text-blue-400 light:text-blue-700 border border-blue-800/60 light:border-blue-300">
+            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-[#e1eadf] dark:bg-[#1e4d35]/40 text-[#1e4d35] dark:text-[#4e9f76] border border-[#1e4d35]/30">
               MISSION CONTROL
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 dark:text-slate-100 light:text-slate-900 font-sans">
-              Welcome back, <span className="text-blue-400 light:text-blue-600">{firstName}</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans">
+              Welcome back, <span className="text-[#1e4d35] dark:text-[#4e9f76]">{firstName}</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 light:text-slate-600 max-w-2xl font-normal leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#566b5c] dark:text-slate-400 max-w-2xl font-normal leading-relaxed">
               Here&apos;s your mission overview. Keep the fleet ready, minimize risks and stay ahead.
             </p>
           </div>
 
           {/* HUD Corner Bracket Tagline matching Picture 1 */}
-          <div className="relative px-5 py-2 text-xs font-mono tracking-wider text-blue-300 dark:text-blue-300 light:text-blue-700 font-semibold select-none shrink-0 self-start md:self-auto">
-            <span className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-blue-400/80 light:border-blue-600" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-blue-400/80 light:border-blue-600" />
-            <span className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-blue-400/80 light:border-blue-600" />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-blue-400/80 light:border-blue-600" />
+          <div className="relative px-5 py-2 text-xs font-mono tracking-wider text-[#1e4d35] dark:text-[#4e9f76] font-semibold select-none shrink-0 self-start md:self-auto">
+            <span className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-[#1e4d35] dark:border-[#4e9f76]" />
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-[#1e4d35] dark:border-[#4e9f76]" />
+            <span className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-[#1e4d35] dark:border-[#4e9f76]" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-[#1e4d35] dark:border-[#4e9f76]" />
 
-            <span className="text-blue-300 dark:text-blue-300 light:text-blue-700">READY FLEET</span>
-            <span className="text-blue-500/60 light:text-blue-400 mx-3">/</span>
-            <span className="text-blue-300 dark:text-blue-300 light:text-blue-700">SAFER MISSIONS</span>
-            <span className="text-blue-500/60 light:text-blue-400 mx-3">/</span>
-            <span className="text-blue-300 dark:text-blue-300 light:text-blue-700">HIGHER SUCCESS</span>
+            <span className="text-[#1e4d35] dark:text-[#4e9f76]">READY FLEET</span>
+            <span className="text-[#1e4d35]/40 mx-3">/</span>
+            <span className="text-[#1e4d35] dark:text-[#4e9f76]">SAFER MISSIONS</span>
+            <span className="text-[#1e4d35]/40 mx-3">/</span>
+            <span className="text-[#1e4d35] dark:text-[#4e9f76]">HIGHER SUCCESS</span>
           </div>
         </div>
 
@@ -181,14 +181,14 @@ export default function DashboardPage() {
             href="/assets"
           >
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Ready <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{counts.READY}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#2d9f6f]" /> Ready <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{counts.READY}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-amber-400" /> At Risk <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{counts.AT_RISK}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> At Risk <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{counts.AT_RISK}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-red-400" /> Not Ready <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{counts.NOT_READY}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-red-500" /> Not Ready <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{counts.NOT_READY}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -201,11 +201,11 @@ export default function DashboardPage() {
             href="/maintenance"
           >
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-blue-400" /> Due Soon <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{maintenanceQueue?.total_scheduled ?? 0}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#1e4d35] dark:bg-[#4e9f76]" /> Due Soon <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.total_scheduled ?? 0}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-purple-400" /> In Progress <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-purple-500" /> In Progress <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -218,14 +218,14 @@ export default function DashboardPage() {
             href="/alerts"
           >
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-red-400" /> Critical <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'critical').length}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-red-500" /> Critical <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'critical').length}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-amber-400" /> Warning <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'warning').length}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> Warning <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'warning').length}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" /> Info <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'info').length}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#4e9f76]" /> Info <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{recentAlerts.filter((alert) => alert.severity === 'info').length}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -238,11 +238,11 @@ export default function DashboardPage() {
             href="/missions"
           >
             <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Active <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#2d9f6f]" /> Active <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.items?.filter((item) => item.maintenance_state === 'IN_PROGRESS').length ?? 0}</strong>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-blue-400" /> Upcoming <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900 ml-0.5">{maintenanceQueue?.items?.length ?? 0}</strong>
+              <span className="flex items-center gap-1.5 text-[#122018] dark:text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#1e4d35] dark:bg-[#4e9f76]" /> Upcoming <strong className="text-[#1e4d35] dark:text-slate-100 ml-0.5">{maintenanceQueue?.items?.length ?? 0}</strong>
               </span>
             </div>
           </SummaryCard>
@@ -267,17 +267,17 @@ export default function DashboardPage() {
             <div className="dashboard-card-shape p-6 flex flex-col justify-between h-full transition-all duration-200">
               <div>
                 {/* Header with Pulse Wave Icon matching Picture 1 */}
-                <div className="flex items-center gap-2.5 pb-4 mb-2 border-b border-slate-800/80 light:border-slate-200">
-                  <Activity className="w-4.5 h-4.5 text-blue-400 light:text-blue-600 shrink-0" />
-                  <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-blue-400 light:text-blue-700">
+                <div className="flex items-center gap-2.5 pb-4 mb-2 border-b border-[#1e4d35]/15 dark:border-slate-800">
+                  <Activity className="w-4.5 h-4.5 text-[#1e4d35] dark:text-[#4e9f76] shrink-0" />
+                  <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#1e4d35] dark:text-[#4e9f76]">
                     RECENT ACTIVITY
                   </h2>
                 </div>
 
                 {/* Activity List */}
-                <div className="divide-y divide-slate-800/60 light:divide-slate-200">
+                <div className="divide-y divide-[#1e4d35]/10 dark:divide-slate-800">
                   {activityItems.length === 0 ? (
-                    <p className="py-6 text-xs font-mono text-slate-500">No recent activity.</p>
+                    <p className="py-6 text-xs font-mono text-[#566b5c] dark:text-slate-500">No recent activity.</p>
                   ) : activityItems.map((item) => {
                     const ItemIcon = item.icon;
                     return (
@@ -287,11 +287,11 @@ export default function DashboardPage() {
                             <ItemIcon className="w-4.5 h-4.5" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-100 dark:text-slate-100 light:text-slate-900 font-sans truncate">{item.title}</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 font-normal truncate mt-0.5">{item.subtitle}</p>
+                            <p className="text-sm font-semibold text-[#122018] dark:text-slate-100 font-sans truncate">{item.title}</p>
+                            <p className="text-xs text-[#566b5c] dark:text-slate-400 font-normal truncate mt-0.5">{item.subtitle}</p>
                           </div>
                         </div>
-                        <span className="text-xs font-mono text-slate-500 light:text-slate-400 shrink-0 ml-2">
+                        <span className="text-xs font-mono text-[#566b5c] dark:text-slate-400 shrink-0 ml-2">
                           {item.time}
                         </span>
                       </div>

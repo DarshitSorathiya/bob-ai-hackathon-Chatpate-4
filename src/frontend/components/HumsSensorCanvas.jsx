@@ -84,31 +84,14 @@ export default function HumsSensorCanvas() {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // 1. Subtle Technical Grid Structure
-      ctx.strokeStyle = 'rgba(51, 65, 85, 0.22)';
-      ctx.lineWidth = 1;
-      const gridSize = 70;
-      for (let x = 0; x < width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
-      for (let y = 0; y < height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
-
-      // 2. Subtle Concentric Radar Rings
+      // 1. Subtle Concentric Radar Rings
       const maxRadius = Math.max(width, height) * 0.6;
       const ringCount = 5;
       for (let r = 1; r <= ringCount; r++) {
         const radius = (maxRadius / ringCount) * r;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = r % 2 === 0 ? 'rgba(59, 130, 246, 0.25)' : 'rgba(71, 85, 105, 0.35)';
+        ctx.strokeStyle = r % 2 === 0 ? 'rgba(78, 159, 118, 0.25)' : 'rgba(30, 77, 53, 0.20)';
         ctx.lineWidth = 1;
         if (r === 3) ctx.setLineDash([6, 8]);
         else ctx.setLineDash([]);
@@ -122,7 +105,7 @@ export default function HumsSensorCanvas() {
       const scanX = centerX + Math.cos(scanAngle) * maxRadius;
       const scanY = centerY + Math.sin(scanAngle) * maxRadius;
       ctx.lineTo(scanX, scanY);
-      ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+      ctx.strokeStyle = 'rgba(78, 159, 118, 0.30)';
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
@@ -177,7 +160,7 @@ export default function HumsSensorCanvas() {
             ctx.beginPath();
             ctx.moveTo(n1.x, n1.y);
             ctx.lineTo(n2.x, n2.y);
-            ctx.strokeStyle = `rgba(59, 130, 246, ${Math.min(0.65, alpha)})`;
+            ctx.strokeStyle = `rgba(78, 159, 118, ${Math.min(0.65, alpha)})`;
             ctx.lineWidth = dCursor < scannerRadius ? 1.2 : 0.8;
             ctx.stroke();
           }
@@ -205,7 +188,7 @@ export default function HumsSensorCanvas() {
         // Occasional tiny data point tick
         if (dCursor < scannerRadius * 0.6) {
           ctx.font = '8px ui-monospace, SFMono-Regular, monospace';
-          ctx.fillStyle = `rgba(96, 165, 250, ${Math.min(0.85, alpha)})`;
+          ctx.fillStyle = `rgba(78, 159, 118, ${Math.min(0.85, alpha)})`;
           ctx.fillText(`+${Math.round(node.x % 99)}`, node.x + 6, node.y + 3);
         }
       });
@@ -214,7 +197,7 @@ export default function HumsSensorCanvas() {
       if (mouse.isHovered) {
         ctx.beginPath();
         ctx.arc(mouse.x, mouse.y, scannerRadius * 0.4, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+        ctx.strokeStyle = 'rgba(78, 159, 118, 0.30)';
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 6]);
         ctx.stroke();
@@ -222,7 +205,7 @@ export default function HumsSensorCanvas() {
 
         ctx.beginPath();
         ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.45)';
+        ctx.fillStyle = 'rgba(78, 159, 118, 0.50)';
         ctx.fill();
       }
 

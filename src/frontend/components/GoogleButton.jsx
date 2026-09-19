@@ -103,21 +103,21 @@ export default function GoogleButton({
       <button
         type="button"
         onClick={handleGoogleClick}
-        className="w-full flex items-center justify-between px-5 py-3 rounded-xl bg-[#070f22]/90 hover:bg-[#0b1632] dark:bg-[#070f22]/90 light:bg-white border border-blue-900/50 dark:border-blue-900/50 light:border-slate-300 hover:border-blue-500/60 shadow-lg shadow-black/30 light:shadow-slate-200/50 transition-all duration-200 group select-none text-slate-100 dark:text-slate-100 light:text-slate-800"
+        className="w-full flex items-center justify-between px-5 py-3 rounded-xl bg-white dark:bg-[#122419] hover:bg-[#e1eadf]/50 dark:hover:bg-[#163a26]/70 border border-[#1e4d35]/25 hover:border-[#1e4d35]/60 shadow-md transition-all duration-200 group select-none text-[#122018] dark:text-slate-100"
       >
         {/* Left: Google G Logo + Vertical Divider */}
         <div className="flex items-center gap-4 shrink-0">
           <GoogleLogo />
-          <div className="h-5 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
+          <div className="h-5 w-px bg-[#1e4d35]/20 dark:bg-slate-800" />
         </div>
 
         {/* Center: Continue with Google */}
-        <span className="text-sm font-medium font-sans tracking-wide text-slate-100 dark:text-slate-100 light:text-slate-800 group-hover:text-blue-300 light:group-hover:text-blue-600 transition-colors">
+        <span className="text-sm font-medium font-sans tracking-wide text-[#122018] dark:text-slate-100 group-hover:text-[#1e4d35] dark:group-hover:text-emerald-400 transition-colors">
           {label}
         </span>
 
         {/* Right: Arrow Icon */}
-        <ArrowRight className="w-4 h-4 text-blue-400 light:text-blue-600 group-hover:translate-x-1 transition-transform shrink-0" />
+        <ArrowRight className="w-4 h-4 text-[#1e4d35] dark:text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0" />
       </button>
 
       {status === 'loading' && (

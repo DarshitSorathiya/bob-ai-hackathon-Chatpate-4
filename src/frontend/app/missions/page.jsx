@@ -7,9 +7,9 @@ import { isAuthenticated, listMissions, createMission } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
 const STATUS_MAP = {
-  PLANNED:     { badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400' },
+  PLANNED:     { badge: 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300' },
   ACTIVE:      { badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' },
-  PLANNING:    { badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400' },
+  PLANNING:    { badge: 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300' },
   BRIEFING:    { badge: 'bg-amber-500/15 border-amber-500/30 text-amber-400' },
   IN_PROGRESS: { badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' },
   COMPLETED:   { badge: 'bg-slate-700/50 border-slate-700 text-slate-400' },
@@ -79,9 +79,9 @@ function CreateMissionModal({ onClose, onCreated }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md px-4">
       <div className="w-full max-w-xl dashboard-card-shape rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <h2 className="text-sm font-bold font-mono text-slate-100">Create New Mission Session</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors"><X className="w-4 h-4" /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e4d35]/20 dark:border-slate-800">
+          <h2 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100">Create New Mission Session</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
@@ -91,65 +91,65 @@ function CreateMissionModal({ onClose, onCreated }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Mission Code *</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Mission Code *</label>
               <input required value={form.mission_code} onChange={(e) => setField('mission_code', e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 uppercase"
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35] uppercase"
                 placeholder="MIS-001" />
             </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Mission Name *</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Mission Name *</label>
               <input required value={form.name} onChange={(e) => setField('name', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35]"
                 placeholder="Operation Recon Alpha" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono text-slate-400 mb-1">Description</label>
+            <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Description</label>
             <textarea rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+              className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35] resize-none"
               placeholder="Optional mission briefing notes..." />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
 
-                      <div className="space-y-2 border-t border-slate-800 pt-4">
+                      <div className="space-y-2 border-t border-[#1e4d35]/20 pt-4 col-span-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-mono text-slate-400">Mission Requirements</label>
-                          <button type="button" onClick={() => setForm((f) => ({ ...f, requirements: [...f.requirements, { capability: '', required_count: '1', is_critical: true }] }))} className="text-[11px] font-mono text-blue-400">Add requirement</button>
+                          <label className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400">Mission Requirements</label>
+                          <button type="button" onClick={() => setForm((f) => ({ ...f, requirements: [...f.requirements, { capability: '', required_count: '1', is_critical: true }] }))} className="text-[11px] font-mono text-[#1e4d35] dark:text-emerald-400 font-bold">Add requirement</button>
                         </div>
                         {form.requirements.map((requirement, index) => (
                           <div key={index} className="grid grid-cols-[1fr_80px_auto] gap-2">
-                            <input value={requirement.capability} onChange={(e) => setRequirement(index, 'capability', e.target.value)} placeholder="HELICOPTER" className="px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100" />
-                            <input type="number" min="1" value={requirement.required_count} onChange={(e) => setRequirement(index, 'required_count', e.target.value)} className="px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100" />
-                            <label className="flex items-center gap-1 text-[10px] font-mono text-slate-400"><input type="checkbox" checked={requirement.is_critical} onChange={(e) => setRequirement(index, 'is_critical', e.target.checked)} /> critical</label>
+                            <input value={requirement.capability} onChange={(e) => setRequirement(index, 'capability', e.target.value)} placeholder="HELICOPTER" className="px-3 py-2 text-xs font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100" />
+                            <input type="number" min="1" value={requirement.required_count} onChange={(e) => setRequirement(index, 'required_count', e.target.value)} className="px-3 py-2 text-xs font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100" />
+                            <label className="flex items-center gap-1 text-[10px] font-mono text-[#566b5c] dark:text-slate-400"><input type="checkbox" checked={requirement.is_critical} onChange={(e) => setRequirement(index, 'is_critical', e.target.checked)} /> critical</label>
                           </div>
                         ))}
                       </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Duration (h)</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Duration (h)</label>
               <input type="number" step="0.5" value={form.duration_hours} onChange={(e) => setField('duration_hours', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500" />
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 focus:outline-none focus:border-[#1e4d35]" />
             </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Priority (1–5)</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Priority (1–5)</label>
               <input type="number" min="1" max="5" value={form.priority} onChange={(e) => setField('priority', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500" />
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 focus:outline-none focus:border-[#1e4d35]" />
             </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Planned Start</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Planned Start</label>
               <input type="datetime-local" value={form.planned_start} onChange={(e) => setField('planned_start', e.target.value)}
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500" />
+                className="w-full px-3 py-2 text-xs font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-200 focus:outline-none focus:border-[#1e4d35]" />
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2 border-t border-slate-800">
+          <div className="flex gap-3 pt-2 border-t border-[#1e4d35]/20">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-xs font-mono text-slate-400 hover:text-slate-200 border border-slate-700 rounded-xl transition-colors">
+              className="flex-1 px-4 py-2.5 text-xs font-mono text-[#566b5c] hover:text-[#122018] dark:text-slate-400 dark:hover:text-slate-200 border border-[#1e4d35]/20 rounded-xl transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 px-4 py-2.5 text-xs font-mono font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl disabled:opacity-50 transition-colors">
+              className="flex-1 px-4 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl disabled:opacity-50 transition-colors">
               {saving ? 'Creating…' : 'Create Mission'}
             </button>
           </div>
@@ -200,17 +200,17 @@ export default function MissionsPage() {
         {/* Title Header */}
         <div className="flex items-center justify-between flex-wrap gap-4 pt-1">
           <div className="space-y-1">
-            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 text-blue-400 border border-blue-800/60">
+            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-[#e1eadf] text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300 border border-[#1e4d35]/30">
               MISSION PLANNING
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 font-sans">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans">
               Operational Sessions
             </h1>
-            <p className="text-xs text-slate-400 font-mono pt-1">{list.length} active sessions</p>
+            <p className="text-xs text-[#566b5c] dark:text-slate-400 font-mono pt-1">{list.length} active sessions</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 rounded-xl transition-all shadow-xl backdrop-blur-xl"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl transition-all shadow-md"
           >
             <Plus className="w-4 h-4" />
             New Mission
@@ -221,28 +221,28 @@ export default function MissionsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">Active Sessions</p>
-              <p className="text-2xl font-extrabold font-mono text-emerald-400 mt-1">{activeCount}</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">Active Sessions</p>
+              <p className="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{activeCount}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Compass className="w-5 h-5" />
             </div>
           </div>
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">Upcoming Missions</p>
-              <p className="text-2xl font-extrabold font-mono text-blue-400 mt-1">{upcomingCount}</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">Upcoming Missions</p>
+              <p className="text-2xl font-extrabold font-mono text-[#1e4d35] dark:text-emerald-400 mt-1">{upcomingCount}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <div className="w-10 h-10 rounded-full bg-[#e1eadf] dark:bg-[#1e4d35]/30 border border-[#1e4d35]/30 flex items-center justify-center text-[#1e4d35] dark:text-emerald-400">
               <Calendar className="w-5 h-5" />
             </div>
           </div>
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">Completed Sessions</p>
-              <p className="text-2xl font-extrabold font-mono text-slate-400 mt-1">{completedCount}</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">Completed Sessions</p>
+              <p className="text-2xl font-extrabold font-mono text-[#566b5c] dark:text-slate-400 mt-1">{completedCount}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-slate-500/10 border border-slate-500/30 flex items-center justify-center text-slate-400">
+            <div className="w-10 h-10 rounded-full bg-slate-500/10 border border-slate-500/30 flex items-center justify-center text-[#566b5c] dark:text-slate-400">
               <ShieldCheck className="w-5 h-5" />
             </div>
           </div>
@@ -265,23 +265,23 @@ export default function MissionsPage() {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="min-w-0">
-                      <p className="font-mono font-bold text-lg text-slate-100 truncate">{mission.mission_code}</p>
-                      <p className="text-xs text-slate-300 mt-0.5 truncate font-semibold">{mission.name}</p>
+                      <p className="font-mono font-bold text-lg text-[#122018] dark:text-slate-100 truncate">{mission.mission_code}</p>
+                      <p className="text-xs text-[#566b5c] dark:text-slate-300 mt-0.5 truncate font-semibold">{mission.name}</p>
                     </div>
                     <StatusBadge status={mission.status} />
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                  <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-[#e1eadf]/40 dark:bg-slate-950/60 p-3 rounded-xl border border-[#1e4d35]/20">
                     <div>
-                      <p className="text-slate-400 font-bold">Duration</p>
-                      <p className="text-slate-100 font-bold">{mission.duration_hours} h</p>
+                      <p className="text-[#566b5c] dark:text-slate-400 font-bold">Duration</p>
+                      <p className="text-[#122018] dark:text-slate-100 font-bold">{mission.duration_hours} h</p>
                     </div>
                     <div>
-                      <p className="text-slate-400 font-bold">Priority</p>
-                      <p className="text-slate-100 font-bold">Level {mission.priority}</p>
+                      <p className="text-[#566b5c] dark:text-slate-400 font-bold">Priority</p>
+                      <p className="text-[#122018] dark:text-slate-100 font-bold">Level {mission.priority}</p>
                     </div>
                   </div>
                 </div>
-                <p className="mt-4 text-xs text-blue-400 font-mono font-bold group-hover:text-blue-300 transition-colors">View Mission Details →</p>
+                <p className="mt-4 text-xs text-[#1e4d35] dark:text-emerald-400 font-mono font-bold group-hover:underline transition-colors">View Mission Details →</p>
               </div>
             ))}
           </div>

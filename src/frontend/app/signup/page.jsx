@@ -155,9 +155,9 @@ export default function SignupPage() {
       {/* Divider matching picture design */}
       <div className="relative my-6 text-center select-none">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800/80 dark:border-slate-800/80 light:border-slate-300" />
+          <div className="w-full border-t border-[#1e4d35]/20 dark:border-slate-800/80" />
         </div>
-        <div className="relative inline-block px-3 py-0.5 rounded-md bg-[#070f22] dark:bg-[#070f22] light:bg-slate-100 border border-slate-800/80 dark:border-slate-800/80 light:border-slate-300 text-[10px] font-mono font-bold text-slate-400 light:text-slate-600 uppercase tracking-widest">
+        <div className="relative inline-block px-3 py-0.5 rounded-md bg-[#e1eadf] dark:bg-[#070f22] border border-[#1e4d35]/20 text-[10px] font-mono font-bold text-[#1e4d35] dark:text-slate-400 uppercase tracking-widest">
           OR CONTINUE WITH
         </div>
       </div>
@@ -168,11 +168,11 @@ export default function SignupPage() {
         onError={(msg) => setAuthError(msg)}
       />
 
-      <div className="mt-5 text-center text-xs text-slate-400 font-sans">
+      <div className="mt-5 text-center text-xs text-[#566b5c] dark:text-slate-400 font-sans">
         Already have an account?{' '}
         <Link
           href="/login"
-          className="font-semibold text-blue-400 hover:text-blue-300 underline underline-offset-4 transition-colors font-mono"
+          className="font-semibold text-[#1e4d35] dark:text-emerald-400 hover:underline underline-offset-4 transition-colors font-mono"
         >
           Sign in
         </Link>

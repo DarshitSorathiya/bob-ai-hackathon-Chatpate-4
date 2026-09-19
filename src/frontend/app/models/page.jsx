@@ -6,30 +6,33 @@ import { CheckCircle, XCircle, AlertTriangle, Cpu, Layers, Activity } from 'luci
 import { isAuthenticated, listModels, getModel } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
-const TASK_COLORS = {
-  rul:     'bg-blue-500/15 border-blue-500/30 text-blue-400',
+const TASK_STYLES = {
+  rul:     'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300',
   failure: 'bg-red-500/15 border-red-500/30 text-red-400',
+  risk:    'bg-red-500/15 border-red-500/30 text-red-400',
   anomaly: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
 };
 
 function TaskBadge({ task }) {
-  const cls = TASK_COLORS[task] || 'bg-slate-700/50 border-slate-700 text-slate-400';
+  const cls = TASK_STYLES[task] || 'bg-slate-700/40 border-slate-700 text-slate-400';
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold border ${cls}`}>
-      {task?.toUpperCase() || 'RUL'}
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border uppercase ${cls}`}>
+      {task}
     </span>
   );
 }
 
 function LeakageBadge({ status }) {
-  if (status === 'FAIL') return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-red-400">
-      <XCircle className="w-3.5 h-3.5" /> FAIL
-    </span>
-  );
+  const map = {
+    PASSED: 'text-emerald-600 dark:text-emerald-400',
+    PASS: 'text-emerald-600 dark:text-emerald-400',
+    WARNED: 'text-amber-600 dark:text-amber-400',
+    FAILED: 'text-red-600 dark:text-red-400',
+    FAIL: 'text-red-600 dark:text-red-400',
+  };
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400">
-      <CheckCircle className="w-3.5 h-3.5" /> PASS
+    <span className={`font-mono font-bold text-xs ${map[status] || 'text-slate-400'}`}>
+      {status || 'UNCHECKED'}
     </span>
   );
 }
@@ -146,16 +149,16 @@ export default function ModelsPage() {
         {/* Title Header */}
         <div className="flex items-center justify-between flex-wrap gap-4 pt-1">
           <div className="space-y-1">
-            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 text-blue-400 border border-blue-800/60">
+            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-[#e1eadf] text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300 border border-[#1e4d35]/30">
               MODEL REGISTRY
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 font-sans flex items-center gap-3">
-              <Cpu className="w-8 h-8 text-blue-400" />
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans flex items-center gap-3">
+              <Cpu className="w-8 h-8 text-[#1e4d35] dark:text-emerald-400" />
               Machine Learning Models
             </h1>
-            <p className="text-xs text-slate-400 font-mono pt-0.5">Registered model versions & evaluation benchmarks</p>
+            <p className="text-xs text-[#566b5c] dark:text-slate-400 font-mono pt-0.5">Registered model versions & evaluation benchmarks</p>
           </div>
-          <span className="text-xs font-mono font-bold text-slate-300 dashboard-card-shape px-4 py-2 rounded-xl">
+          <span className="text-xs font-mono font-bold text-[#122018] dark:text-slate-300 dashboard-card-shape px-4 py-2 rounded-xl">
             {list.length} Registered Models
           </span>
         </div>
@@ -164,30 +167,30 @@ export default function ModelsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">Active ML Models</p>
-              <p className="text-2xl font-extrabold font-mono text-blue-400 mt-1">{list.length}</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">Active ML Models</p>
+              <p className="text-2xl font-extrabold font-mono text-[#1e4d35] dark:text-emerald-400 mt-1">{list.length}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <div className="w-10 h-10 rounded-full bg-[#e1eadf] dark:bg-[#1e4d35]/30 border border-[#1e4d35]/30 flex items-center justify-center text-[#1e4d35] dark:text-emerald-400">
               <Cpu className="w-5 h-5" />
             </div>
           </div>
 
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">Leakage Checks</p>
-              <p className="text-2xl font-extrabold font-mono text-emerald-400 mt-1">100% PASS</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">Leakage Checks</p>
+              <p className="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-1">100% PASS</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <CheckCircle className="w-5 h-5" />
             </div>
           </div>
 
           <div className="dashboard-card-shape rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-mono text-slate-400">RUL Prediction Acc.</p>
-              <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">96.4%</p>
+              <p className="text-xs font-mono text-[#566b5c] dark:text-slate-400">RUL Prediction Acc.</p>
+              <p className="text-2xl font-extrabold font-mono text-[#1e4d35] dark:text-emerald-400 mt-1">96.4%</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <div className="w-10 h-10 rounded-full bg-[#e1eadf] dark:bg-[#1e4d35]/30 border border-[#1e4d35]/30 flex items-center justify-center text-[#1e4d35] dark:text-emerald-400">
               <Activity className="w-5 h-5" />
             </div>
           </div>
@@ -208,37 +211,37 @@ export default function ModelsPage() {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="min-w-0">
-                      <p className="font-mono font-bold text-lg text-slate-100 truncate">{model.tag}</p>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{model.algorithm || 'XGBoost Regressor'}</p>
+                      <p className="font-mono font-bold text-lg text-[#122018] dark:text-slate-100 truncate">{model.tag}</p>
+                      <p className="text-xs text-[#566b5c] dark:text-slate-400 font-mono mt-0.5">{model.algorithm || 'XGBoost Regressor'}</p>
                     </div>
                     <TaskBadge task={model.task} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 mb-3">
+                  <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-[#e1eadf]/40 dark:bg-slate-950/60 p-3.5 rounded-xl border border-[#1e4d35]/20 mb-3">
                     <div>
-                      <p className="text-slate-400 font-bold">Features</p>
-                      <p className="text-slate-100 font-bold">{model.feature_count}</p>
+                      <p className="text-[#566b5c] dark:text-slate-400 font-bold">Features</p>
+                      <p className="text-[#122018] dark:text-slate-100 font-bold">{model.feature_count}</p>
                     </div>
                     <div>
-                      <p className="text-slate-400 font-bold">Leakage</p>
+                      <p className="text-[#566b5c] dark:text-slate-400 font-bold">Leakage</p>
                       <LeakageBadge status={model.leakage_status} />
                     </div>
                     {model.evaluation?.mae != null && (
                       <div>
-                        <p className="text-slate-400 font-bold">MAE</p>
-                        <p className="text-slate-100 font-bold tabular-nums">{model.evaluation.mae.toFixed(4)}</p>
+                        <p className="text-[#566b5c] dark:text-slate-400 font-bold">MAE</p>
+                        <p className="text-[#122018] dark:text-slate-100 font-bold tabular-nums">{model.evaluation.mae.toFixed(4)}</p>
                       </div>
                     )}
                     {model.evaluation?.pr_auc != null && (
                       <div>
-                        <p className="text-slate-400 font-bold">PR-AUC</p>
-                        <p className="text-slate-100 font-bold tabular-nums">{model.evaluation.pr_auc.toFixed(4)}</p>
+                        <p className="text-[#566b5c] dark:text-slate-400 font-bold">PR-AUC</p>
+                        <p className="text-[#122018] dark:text-slate-100 font-bold tabular-nums">{model.evaluation.pr_auc.toFixed(4)}</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <p className="text-xs text-blue-400 font-mono font-bold group-hover:text-blue-300 transition-colors">View Model Details →</p>
+                <p className="text-xs text-[#1e4d35] dark:text-emerald-400 font-mono font-bold group-hover:underline transition-colors">View Model Details →</p>
               </div>
             ))}
           </div>

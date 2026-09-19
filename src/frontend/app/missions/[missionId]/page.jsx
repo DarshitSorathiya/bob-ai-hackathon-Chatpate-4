@@ -16,7 +16,7 @@ import NavBar from '../../../components/NavBar';
 
 function MissionStatusBadge({ status }) {
   const map = {
-    PLANNED:   { cls: 'bg-blue-500/20 border-blue-500/40 text-blue-400' },
+    PLANNED:   { cls: 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300' },
     ACTIVE:    { cls: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' },
     COMPLETED: { cls: 'bg-slate-600/30 border-slate-600 text-slate-400' },
     CANCELLED: { cls: 'bg-slate-700/30 border-slate-700 text-slate-500' },
@@ -86,34 +86,34 @@ function AssignAssetModal({ missionId, onClose, onAssigned }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md bg-[#0d1117] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+      <div className="w-full max-w-md dashboard-card-shape rounded-2xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e4d35]/20 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-blue-400" />
-            <h2 className="text-sm font-bold font-mono text-slate-100">Assign Asset</h2>
+            <User className="w-4 h-4 text-[#1e4d35] dark:text-emerald-400" />
+            <h2 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100">Assign Asset</h2>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           {error && <div className="bg-red-950/40 border border-red-700/40 text-red-400 text-xs font-mono px-4 py-2 rounded-lg">{error}</div>}
           <div>
-            <label className="block text-[11px] font-mono text-slate-400 mb-1">Asset *</label>
+            <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Asset *</label>
             <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} required
-              className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-blue-500">
+              className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-900/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-300 focus:outline-none focus:border-[#1e4d35]">
               <option value="">— select asset —</option>
               {assets.map((a) => <option key={a.id} value={a.id}>{a.asset_code} — {a.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-mono text-slate-400 mb-1">Notes</label>
+            <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Notes</label>
             <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional"
-              className="w-full px-3 py-2 text-sm font-mono bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+              className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-900/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35]" />
           </div>
-          <div className="flex gap-3 pt-2 border-t border-slate-800">
+          <div className="flex gap-3 pt-2 border-t border-[#1e4d35]/20">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-mono text-slate-400 hover:text-slate-200 border border-slate-700 rounded-xl transition-colors">Cancel</button>
+              className="flex-1 px-4 py-2.5 text-sm font-mono text-[#566b5c] hover:text-[#122018] dark:text-slate-400 border border-[#1e4d35]/20 rounded-xl transition-colors">Cancel</button>
             <button type="submit" disabled={saving}
-              className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl disabled:opacity-50 transition-colors">
+              className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl disabled:opacity-50 transition-colors">
               {saving ? 'Assigning…' : 'Assign'}
             </button>
           </div>
@@ -128,26 +128,21 @@ function AssignAssetModal({ missionId, onClose, onAssigned }) {
 function ReadinessPanel({ readiness, onEvaluate, evaluating }) {
   const [open, setOpen] = useState(true);
   if (!readiness) return null;
-  // API returns status (GO/NO_GO/GO_WITH_RISK/UNKNOWN) as "verdict"-equivalent
   const verdict = readiness.status || 'UNKNOWN';
   const risk_score = readiness.risk_score;
-  const gaps = readiness.gaps || [];
-  const conflicts = readiness.conflicts || [];
-  const capReadiness = readiness.capability_readiness || [];
-  const assetReadiness = readiness.asset_readiness || [];
 
   return (
-    <div className="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden">
+    <div className="dashboard-card-shape rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/30 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-[#e1eadf]/40 dark:hover:bg-slate-800/30 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold font-mono text-slate-100">Mission Readiness</span>
+          <span className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100">Mission Readiness</span>
           <ReadinessBadge verdict={verdict} />
           {risk_score != null && (
-            <span className="text-[11px] font-mono text-slate-400">
-              Risk: <span style={{ color: risk_score > 0.7 ? '#f87171' : risk_score > 0.4 ? '#fbbf24' : '#34d399' }}>
+            <span className="text-[11px] font-mono text-[#566b5c] dark:text-slate-400">
+              Risk: <span style={{ color: risk_score > 0.7 ? '#ef4444' : risk_score > 0.4 ? '#f59e0b' : '#10b981' }}>
                 {(risk_score * 100).toFixed(0)}%
               </span>
             </span>
@@ -157,11 +152,11 @@ function ReadinessPanel({ readiness, onEvaluate, evaluating }) {
           <button
             onClick={(e) => { e.stopPropagation(); onEvaluate(); }}
             disabled={evaluating}
-            className="text-[11px] font-mono text-blue-400 hover:text-blue-300 px-2.5 py-1 rounded border border-blue-500/20 hover:border-blue-400/40 disabled:opacity-50 transition-colors"
+            className="text-[11px] font-mono font-bold text-white bg-[#1e4d35] hover:bg-[#163a26] px-3 py-1 rounded-lg border border-[#1e4d35] disabled:opacity-50 transition-all shadow-sm"
           >
             {evaluating ? 'Evaluating…' : 'Re-evaluate'}
           </button>
-          {open ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+          {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </div>
       </button>
 
@@ -378,7 +373,7 @@ export default function MissionDetailPage() {
                     className={`px-4 py-2 text-xs font-mono font-bold rounded-xl border transition-colors disabled:opacity-50 ${
                       s === 'CANCELLED' ? 'border-red-700/40 bg-red-950/20 text-red-400 hover:bg-red-950/40' :
                       s === 'COMPLETED' ? 'border-emerald-700/40 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-950/40' :
-                      'border-blue-700/40 bg-blue-950/20 text-blue-400 hover:bg-blue-950/40'
+                      'border-[#1e4d35] bg-[#1e4d35] text-white hover:bg-[#163a26]'
                     }`}
                   >
                     → {s}
@@ -436,10 +431,10 @@ export default function MissionDetailPage() {
         {/* Readiness Panel Box */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold font-mono text-slate-300 uppercase">Readiness Evaluation</p>
+            <p className="text-xs font-bold font-mono text-[#122018] dark:text-slate-300 uppercase">Readiness Evaluation</p>
             <button
               onClick={() => setShowAssign(true)}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-blue-300 hover:text-blue-200 border border-blue-500/30 rounded-xl bg-blue-600/20 shadow-md backdrop-blur-xl transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-white bg-[#1e4d35] hover:bg-[#163a26] border border-[#1e4d35] rounded-xl shadow-md transition-all"
             >
               <Plus className="w-3.5 h-3.5" /> Assign Asset
             </button>
@@ -448,11 +443,11 @@ export default function MissionDetailPage() {
             <ReadinessPanel readiness={readiness} onEvaluate={handleEvaluate} evaluating={evaluating} />
           ) : (
             <div className="dashboard-card-shape rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
-              <p className="text-slate-400 font-mono text-sm">No readiness evaluation yet.</p>
+              <p className="text-[#566b5c] dark:text-slate-400 font-mono text-sm">No readiness evaluation yet.</p>
               <button
                 onClick={handleEvaluate}
                 disabled={evaluating}
-                className="mt-3 px-5 py-2.5 text-xs font-mono font-bold bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 rounded-xl disabled:opacity-50 transition-colors"
+                className="mt-3 px-5 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl disabled:opacity-50 transition-colors shadow-md"
               >
                 {evaluating ? 'Evaluating…' : 'Run Evaluation'}
               </button>

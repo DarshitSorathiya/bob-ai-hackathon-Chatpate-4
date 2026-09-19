@@ -9,7 +9,7 @@ import NavBar from '../../components/NavBar';
 const ISSUE_SEVERITY = {
   critical: { border: 'border-l-red-500',   badge: 'bg-red-500/15 border-red-500/30 text-red-400',     icon: XCircle },
   warning:  { border: 'border-l-amber-500', badge: 'bg-amber-500/15 border-amber-500/30 text-amber-400', icon: AlertTriangle },
-  info:     { border: 'border-l-blue-500',  badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400',   icon: HelpCircle },
+  info:     { border: 'border-l-[#1e4d35]',  badge: 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300',   icon: HelpCircle },
   ok:       { border: 'border-l-emerald-500', badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400', icon: CheckCircle },
 };
 
@@ -89,13 +89,13 @@ export default function DataQualityPage() {
         {/* Title Header */}
         <div className="flex items-center justify-between flex-wrap gap-4 pt-1">
           <div className="space-y-1">
-            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 text-blue-400 border border-blue-800/60">
+            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-[#e1eadf] text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300 border border-[#1e4d35]/30">
               TELEMETRY INTEGRITY
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 font-sans">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans">
               Data Quality & Sensor Faults
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-[#566b5c] dark:text-slate-400">
               Diagnostic verification of sensor sampling, packet drops, and calibration drift telemetry.
             </p>
           </div>
@@ -103,12 +103,12 @@ export default function DataQualityPage() {
 
         {/* Summary Counters Banner */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          <SummaryCard label="Total Events"   value={displaySummary.total}    color="text-slate-100" />
-          <SummaryCard label="Critical"       value={displaySummary.critical} color="text-red-400" />
-          <SummaryCard label="Warnings"       value={displaySummary.warning}  color="text-amber-400" />
-          <SummaryCard label="Info"           value={displaySummary.info}     color="text-cyan-400" />
-          <SummaryCard label="Sensor Faults"  value={displaySummary.sensor_faults}  color="text-slate-200" />
-          <SummaryCard label="Stale Data"     value={displaySummary.stale_data}     color="text-slate-200" />
+          <SummaryCard label="Total Events"   value={displaySummary.total}    color="text-[#122018] dark:text-slate-100" />
+          <SummaryCard label="Critical"       value={displaySummary.critical} color="text-red-500 dark:text-red-400" />
+          <SummaryCard label="Warnings"       value={displaySummary.warning}  color="text-amber-500 dark:text-amber-400" />
+          <SummaryCard label="Info"           value={displaySummary.info}     color="text-[#1e4d35] dark:text-emerald-400" />
+          <SummaryCard label="Sensor Faults"  value={displaySummary.sensor_faults}  color="text-[#566b5c] dark:text-slate-200" />
+          <SummaryCard label="Stale Data"     value={displaySummary.stale_data}     color="text-[#566b5c] dark:text-slate-200" />
         </div>
 
         {/* Filters Card Box */}
@@ -116,7 +116,7 @@ export default function DataQualityPage() {
           <select
             value={severityFilter}
             onChange={(e) => applyFilter(setSeverityFilter, e.target.value)}
-            className="px-4 py-2.5 text-xs font-mono bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+            className="px-4 py-2.5 text-xs font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-xl text-[#122018] dark:text-slate-200 focus:outline-none focus:border-[#1e4d35] transition-colors"
           >
             <option value="">All Severities</option>
             <option value="critical">Critical</option>
@@ -127,7 +127,7 @@ export default function DataQualityPage() {
           <select
             value={issueTypeFilter}
             onChange={(e) => applyFilter(setIssueTypeFilter, e.target.value)}
-            className="px-4 py-2.5 text-xs font-mono bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+            className="px-4 py-2.5 text-xs font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-xl text-[#122018] dark:text-slate-200 focus:outline-none focus:border-[#1e4d35] transition-colors"
           >
             <option value="">All Issue Types</option>
             {ISSUE_TYPES.map((t) => (
@@ -138,7 +138,7 @@ export default function DataQualityPage() {
           {(severityFilter || issueTypeFilter) && (
             <button
               onClick={() => { setPage(0); setSeverityFilter(''); setIssueTypeFilter(''); }}
-              className="px-4 py-2.5 text-xs font-mono font-bold text-slate-300 hover:text-slate-100 border border-slate-800 bg-slate-950/40 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-mono font-bold text-[#122018] dark:text-slate-300 border border-[#1e4d35]/30 bg-[#e1eadf]/50 dark:bg-slate-950/40 rounded-xl transition-colors"
             >
               Clear filters
             </button>
@@ -165,11 +165,11 @@ export default function DataQualityPage() {
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <SeverityBadge severity={evt.severity} />
-                        <span className="text-xs font-mono text-slate-400 uppercase bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800">
+                        <span className="text-xs font-mono text-[#566b5c] dark:text-slate-400 uppercase bg-[#e1eadf]/50 dark:bg-slate-950/60 px-2.5 py-1 rounded-lg border border-[#1e4d35]/20">
                           {evt.issue_type?.replace(/_/g, ' ')}
                         </span>
                         {evt.asset_code && (
-                          <span className="text-xs font-mono font-bold text-blue-400">{evt.asset_code}</span>
+                          <span className="text-xs font-mono font-bold text-[#1e4d35] dark:text-emerald-400">{evt.asset_code}</span>
                         )}
                         {evt.sensor_code && (
                           <span className="text-xs font-mono text-slate-400">/ {evt.sensor_code}</span>

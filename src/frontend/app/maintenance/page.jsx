@@ -9,7 +9,7 @@ import NavBar from '../../components/NavBar';
 const URGENCY_COLORS = {
   IMMEDIATE: { badge: 'bg-red-500/15 border-red-500/30 text-red-400', bar: 'bg-red-500' },
   URGENT:    { badge: 'bg-amber-500/15 border-amber-500/30 text-amber-400', bar: 'bg-amber-500' },
-  SCHEDULED: { badge: 'bg-blue-500/15 border-blue-500/30 text-blue-400', bar: 'bg-blue-500' },
+  SCHEDULED: { badge: 'bg-[#e1eadf] border-[#1e4d35]/30 text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300', bar: 'bg-[#1e4d35]' },
   ROUTINE:   { badge: 'bg-slate-600/30 border-slate-600 text-slate-400', bar: 'bg-slate-500' },
   DEFERRED:  { badge: 'bg-slate-700/30 border-slate-700 text-slate-500', bar: 'bg-slate-600' },
 };
@@ -69,12 +69,12 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md px-4">
       <div className="w-full max-w-xl dashboard-card-shape rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e4d35]/20 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-amber-400" />
-            <h2 className="text-sm font-bold font-mono text-slate-100">New Work Order</h2>
+            <Wrench className="w-5 h-5 text-amber-500" />
+            <h2 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100">New Work Order</h2>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 transition-colors"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
@@ -83,24 +83,24 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
           )}
 
           <div>
-            <label className="block text-[11px] font-mono text-slate-400 mb-1">Title *</label>
+            <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Title *</label>
             <input required value={form.title} onChange={(e) => setField('title', e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35]"
               placeholder="e.g., Turbofan Hydraulic Line Replacement" />
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono text-slate-400 mb-1">Description</label>
+            <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Description</label>
             <textarea rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)}
-              className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+              className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#1e4d35] resize-none"
               placeholder="Optional maintenance instructions..." />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Asset</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Asset</label>
               <select value={form.asset_id} onChange={(e) => setField('asset_id', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500">
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-200 focus:outline-none focus:border-[#1e4d35]">
                 <option value="">Unassigned</option>
                 {assets.map((a) => (
                   <option key={a.id} value={a.id}>{a.asset_code} ({a.asset_type})</option>
@@ -108,9 +108,9 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">Urgency</label>
+              <label className="block text-[11px] font-mono text-[#566b5c] dark:text-slate-400 mb-1">Urgency</label>
               <select value={form.urgency_level} onChange={(e) => setField('urgency_level', e.target.value)}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-950/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500">
+                className="w-full px-3 py-2 text-sm font-mono bg-white dark:bg-slate-950/60 border border-[#1e4d35]/20 rounded-lg text-[#122018] dark:text-slate-200 focus:outline-none focus:border-[#1e4d35]">
                 <option value="IMMEDIATE">IMMEDIATE</option>
                 <option value="URGENT">URGENT</option>
                 <option value="SCHEDULED">SCHEDULED</option>
@@ -121,11 +121,11 @@ function CreateWorkOrderModal({ onClose, onCreated }) {
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-slate-300">
-              <input type="checkbox" checked={form.is_blocking} onChange={(e) => setField('is_blocking', e.target.checked)} className="rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-0" />
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-[#122018] dark:text-slate-300">
+              <input type="checkbox" checked={form.is_blocking} onChange={(e) => setField('is_blocking', e.target.checked)} className="rounded border-[#1e4d35]/40 text-[#1e4d35] focus:ring-0" />
               Blocks Mission Readiness
             </label>
-            <button type="submit" disabled={saving} className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs rounded-xl disabled:opacity-50">
+            <button type="submit" disabled={saving} className="px-5 py-2 bg-[#1e4d35] hover:bg-[#163a26] text-white font-mono font-bold text-xs rounded-xl disabled:opacity-50">
               {saving ? 'Creating…' : 'Create Work Order'}
             </button>
           </div>
@@ -180,21 +180,21 @@ export default function MaintenancePage() {
         {/* Title Header */}
         <div className="flex items-center justify-between flex-wrap gap-4 pt-1">
           <div className="space-y-1">
-            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-950/80 text-blue-400 border border-blue-800/60">
+            <span className="inline-block px-3 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest bg-[#e1eadf] text-[#1e4d35] dark:bg-[#1e4d35]/30 dark:text-emerald-300 border border-[#1e4d35]/30">
               MAINTENANCE QUEUE
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 font-sans">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#122018] dark:text-slate-100 font-sans">
               Maintenance Management
             </h1>
             <div className="flex gap-4 text-xs font-mono pt-1">
-              <span className="text-red-400 font-bold">{queue?.total_immediate ?? 0} IMMEDIATE</span>
-              <span className="text-amber-400 font-bold">{queue?.total_urgent ?? 0} URGENT</span>
-              <span className="text-blue-400 font-bold">{queue?.total_scheduled ?? 0} SCHEDULED</span>
+              <span className="text-red-500 font-bold">{queue?.total_immediate ?? 0} IMMEDIATE</span>
+              <span className="text-amber-500 font-bold">{queue?.total_urgent ?? 0} URGENT</span>
+              <span className="text-[#1e4d35] dark:text-emerald-400 font-bold">{queue?.total_scheduled ?? 0} SCHEDULED</span>
             </div>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-xl transition-all shadow-xl backdrop-blur-xl"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl transition-all shadow-md"
           >
             <Plus className="w-4 h-4" />
             New Work Order
@@ -207,7 +207,7 @@ export default function MaintenancePage() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`px-5 py-2.5 text-xs font-mono font-bold rounded-xl transition-all ${tab === id ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300 shadow-md' : 'text-slate-400 hover:text-slate-100'}`}
+              className={`px-5 py-2.5 text-xs font-mono font-bold rounded-xl transition-all ${tab === id ? 'bg-[#1e4d35] border border-[#1e4d35] text-white shadow-md' : 'text-[#566b5c] hover:text-[#122018] dark:text-slate-400 dark:hover:text-slate-100'}`}
             >
               {label}
             </button>
