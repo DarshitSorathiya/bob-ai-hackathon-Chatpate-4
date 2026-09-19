@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, Wrench, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
-import { isAuthenticated, listWorkOrders, createWorkOrder, getMaintenanceQueue, updateWorkOrder, listAssets } from '../../lib/api';
+import { isAuthenticated, listWorkOrders, createWorkOrder, getMaintenanceQueue, updateWorkOrder, listAssets, hasMinRole } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
 const URGENCY_COLORS = {
@@ -154,7 +154,7 @@ export default function MaintenancePage() {
       if (assetId) {
         setPreselectedAssetId(assetId);
       }
-      if (req === 'true' || assetId) {
+      if ((req === 'true' || assetId) && hasMinRole('maintainer')) {
         setShowCreate(true);
       }
     }
@@ -205,13 +205,15 @@ export default function MaintenancePage() {
               <span className="text-[#1e4d35] dark:text-emerald-400 font-bold">{queue?.total_scheduled ?? 0} SCHEDULED</span>
             </div>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl transition-all shadow-md"
-          >
-            <Plus className="w-4 h-4" />
-            New Work Order
-          </button>
+          {hasMinRole('maintainer') && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold bg-[#1e4d35] hover:bg-[#163a26] text-white rounded-xl transition-all shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              New Work Order
+            </button>
+          )}
         </div>
 
         {/* Tab Switcher Box */}

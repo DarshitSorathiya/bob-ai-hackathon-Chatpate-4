@@ -167,12 +167,17 @@ class MissionEngine:
         # Step 4: Determine mission status
         # ----------------------------------------------------------------
         has_critical_gap = any(g.is_critical and g.shortage > 0 for g in gaps)
+        has_any_gap = bool(gaps)
 
-        if has_unknown_cap and not has_critical_gap and not gaps:
-            status = MissionStatus.UNKNOWN
-        elif has_critical_gap or risk_score >= self._CRITICAL_RISK_THRESHOLD:
+        if has_critical_gap or risk_score >= self._CRITICAL_RISK_THRESHOLD:
             status = MissionStatus.NO_GO
-        elif risk_score >= self._MODERATE_RISK_THRESHOLD:
+        elif has_unknown_cap and not has_any_gap and not inp.requirements:
+            # No requirements defined at all — cannot assess
+            status = MissionStatus.GO
+        elif has_unknown_cap and not has_critical_gap:
+            # Non-critical capabilities have unassessed assets — elevate to GO_WITH_RISK
+            status = MissionStatus.GO_WITH_RISK
+        elif risk_score >= self._MODERATE_RISK_THRESHOLD or has_any_gap:
             status = MissionStatus.GO_WITH_RISK
         else:
             status = MissionStatus.GO

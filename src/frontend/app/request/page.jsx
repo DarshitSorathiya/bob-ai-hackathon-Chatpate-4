@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wrench, CheckCircle2, AlertTriangle, Send, PackageCheck, Clock, ShieldCheck, UserCheck, ArrowRight } from 'lucide-react';
+import { Wrench, CheckCircle2, AlertTriangle, Send, PackageCheck } from 'lucide-react';
 import NavBar from '../../components/NavBar';
+import RoleGuard from '../../components/RoleGuard';
 import {
   isAuthenticated, getUser, listAssets, createWorkOrder, listWorkOrders,
-  getResourceRequests, createResourceRequest, updateResourceRequestStatus
+  getResourceRequests, createResourceRequest, updateResourceRequestStatus,
 } from '../../lib/api';
 
 const URGENCY_BADGES = {
@@ -44,8 +45,8 @@ export default function RequestPage() {
     resource_name: 'Hydraulic Fluid (MIL-PRF-83282)',
     quantity: '20 units',
     description: '',
-    asset_id: 'TJS-014',
-    component_id: 'CMP-HYD-88',
+    asset_id: '',
+    component_id: '',
     urgency_level: 'URGENT',
     is_blocking: true,
     estimated_hours: '2',
@@ -139,7 +140,7 @@ export default function RequestPage() {
   const handleAssetSelect = (asset) => {
     setForm((prev) => ({
       ...prev,
-      asset_id: asset.id || asset.asset_code,
+      asset_id: asset.id,
       title: `Component Request — ${asset.asset_code} (${asset.call_sign || asset.asset_type})`,
       description: `Component requested for ${asset.asset_code} (${asset.call_sign || asset.asset_type}) stationed at HAL Airport Base, Bengaluru, Karnataka, India.`,
     }));
@@ -198,6 +199,7 @@ export default function RequestPage() {
   };
 
   return (
+    <RoleGuard minRole="operator">
     <NavBar title="Resource Requisitions & Supply Requests" onBack={() => router.push('/dashboard')}>
       <div className="space-y-6">
 
@@ -350,8 +352,8 @@ export default function RequestPage() {
                       className="w-full px-3.5 py-2.5 text-xs font-mono bg-[#f4f6ee] dark:bg-[#0d1b13] border border-[#1e4d35]/30 dark:border-[#4e9f76]/30 rounded-xl text-[#122018] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1e4d35]"
                     >
                       <option value="">-- Select Own Fleet Aircraft --</option>
-                      {assets.map((a) => (
-                        <option key={a.id || a.asset_code} value={a.id || a.asset_code}>
+                      {assets.filter((a) => a.id && !a.id.startsWith('ast_')).map((a) => (
+                        <option key={a.id} value={a.id}>
                           {a.asset_code} — {a.call_sign || a.asset_type} ({a.manufacturer || 'HAL'})
                         </option>
                       ))}
@@ -561,5 +563,6 @@ export default function RequestPage() {
 
       </div>
     </NavBar>
+    </RoleGuard>
   );
 }

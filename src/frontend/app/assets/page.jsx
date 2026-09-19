@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, RefreshCw, ChevronRight, Plane, Shield, AlertTriangle, CheckCircle2, Plus, X } from 'lucide-react';
 import NavBar from '../../components/NavBar';
-import { isAuthenticated, listAssets, getAllReadiness, createAsset } from '../../lib/api';
+import { isAuthenticated, listAssets, getAllReadiness, createAsset, hasMinRole } from '../../lib/api';
 
 function StatusBadge({ status }) {
   const map = {
@@ -96,7 +96,9 @@ export default function AssetsPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold text-white border border-[#1e4d35] rounded-xl bg-[#1e4d35] hover:bg-[#163a26] shadow-sm"><Plus className="w-4 h-4" /> Add craft</button>
+            {hasMinRole('maintainer') && (
+              <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-bold text-white border border-[#1e4d35] rounded-xl bg-[#1e4d35] hover:bg-[#163a26] shadow-sm"><Plus className="w-4 h-4" /> Add craft</button>
+            )}
             <div className="flex items-center gap-3 dashboard-card-shape px-4 py-2 rounded-xl">
             <span className="text-xs font-mono text-[#122018] dark:text-slate-300 font-bold">{filtered.length} of {assets.length} Assets</span>
             <button onClick={load} className="text-[#566b5c] hover:text-[#122018] dark:hover:text-slate-100 p-1 transition-colors" title="Refresh">
@@ -106,7 +108,7 @@ export default function AssetsPage() {
           </div>
         </div>
 
-        {showCreate && (
+        {showCreate && hasMinRole('maintainer') && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
             <form onSubmit={submitAsset} className="w-full max-w-lg dashboard-card-shape rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between"><h2 className="text-sm font-bold font-mono text-[#122018] dark:text-slate-100">Register Craft</h2><button type="button" onClick={() => setShowCreate(false)}><X className="w-4 h-4" /></button></div>

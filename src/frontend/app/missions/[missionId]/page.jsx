@@ -128,8 +128,13 @@ function AssignAssetModal({ missionId, onClose, onAssigned }) {
 function ReadinessPanel({ readiness, onEvaluate, evaluating }) {
   const [open, setOpen] = useState(true);
   if (!readiness) return null;
-  const verdict = readiness.status || 'UNKNOWN';
+  const verdict = readiness.status;
+  if (!verdict) return null;
   const risk_score = readiness.risk_score;
+  const assetReadiness = readiness.asset_readiness || [];
+  const capReadiness   = readiness.capability_readiness || [];
+  const gaps           = readiness.gaps || readiness.capability_gaps || [];
+  const conflicts      = readiness.conflicts || [];
 
   return (
     <div className="dashboard-card-shape rounded-xl overflow-hidden">
@@ -271,21 +276,31 @@ export default function MissionDetailPage() {
   const [readiness, setReadiness] = useState(null);
   const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(false);
+  const [evalError, setEvalError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [showAssign, setShowAssign] = useState(false);
   const [statusChanging, setStatusChanging] = useState(false);
 
   const loadMission = useCallback(async () => {
     if (!missionId) return;
     setLoading(true);
+    setLoadError('');
     try {
-      const [m, r] = await Promise.all([
+      const [mResult, rResult] = await Promise.allSettled([
         getMission(missionId),
-        getMissionReadiness(missionId).catch(() => null),
+        getMissionReadiness(missionId),
       ]);
-      setMission(m);
-      setReadiness(r);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+      if (mResult.status === 'fulfilled') {
+        setMission(mResult.value);
+      } else {
+        setLoadError(mResult.reason?.message || 'Failed to load mission.');
+      }
+      // Only accept readiness if it has a valid status field
+      if (rResult.status === 'fulfilled' && rResult.value?.status) {
+        setReadiness(rResult.value);
+      }
+      // If readiness fetch failed or had no status, leave null → shows "Run Evaluation" prompt
+    } finally { setLoading(false); }
   }, [missionId]);
 
   useEffect(() => {
@@ -295,11 +310,17 @@ export default function MissionDetailPage() {
 
   const handleEvaluate = async () => {
     setEvaluating(true);
+    setEvalError('');
     try {
       const r = await getMissionReadiness(missionId);
-      setReadiness(r);
-    } catch { /* ignore */ }
-    finally { setEvaluating(false); }
+      if (r?.status) {
+        setReadiness(r);
+      } else {
+        setEvalError('Evaluation returned no result. Assign assets to the mission first.');
+      }
+    } catch (err) {
+      setEvalError(err?.message || 'Readiness evaluation failed. Assign assets and try again.');
+    } finally { setEvaluating(false); }
   };
 
   const handleStatusChange = async (newStatus) => {
@@ -346,6 +367,12 @@ export default function MissionDetailPage() {
       )}
 
       <div className="space-y-6">
+        {loadError && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-400 text-xs font-mono">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            {loadError}
+          </div>
+        )}
         {/* Header Box */}
         <div className="dashboard-card-shape rounded-2xl p-6 backdrop-blur-xl shadow-xl">
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -439,11 +466,19 @@ export default function MissionDetailPage() {
               <Plus className="w-3.5 h-3.5" /> Assign Asset
             </button>
           </div>
+          {evalError && (
+            <div className="flex items-center gap-2 px-4 py-3 mb-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-400 text-xs font-mono">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              {evalError}
+            </div>
+          )}
           {readiness ? (
             <ReadinessPanel readiness={readiness} onEvaluate={handleEvaluate} evaluating={evaluating} />
           ) : (
             <div className="dashboard-card-shape rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
-              <p className="text-[#566b5c] dark:text-slate-400 font-mono text-sm">No readiness evaluation yet.</p>
+              <p className="text-[#566b5c] dark:text-slate-400 font-mono text-sm">
+                {evaluating ? 'Running evaluation…' : 'No readiness evaluation yet. Assign assets then run evaluation.'}
+              </p>
               <button
                 onClick={handleEvaluate}
                 disabled={evaluating}

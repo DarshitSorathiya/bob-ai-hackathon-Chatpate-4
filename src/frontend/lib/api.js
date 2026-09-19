@@ -167,13 +167,16 @@ const DEMO_ENROLLED_MISSIONS = [
 ];
 
 function getEnrolledFallback(path) {
-  if (path.startsWith('/assets')) return DEMO_ENROLLED_ASSETS;
-  if (path.startsWith('/readiness/all')) return DEMO_ENROLLED_READINESS;
-  if (path.startsWith('/readiness')) return DEMO_ENROLLED_SUMMARY;
-  if (path.startsWith('/alerts')) return DEMO_ENROLLED_ALERTS;
-  if (path.startsWith('/maintenance/queue')) return DEMO_ENROLLED_QUEUE;
-  if (path.startsWith('/maintenance')) return DEMO_ENROLLED_QUEUE.items;
-  if (path.startsWith('/missions')) return DEMO_ENROLLED_MISSIONS;
+  // Strip query string for matching
+  const base = path.split('?')[0];
+  // Only match exact list endpoints — never individual resource paths or sub-paths
+  if (base === '/assets')                return DEMO_ENROLLED_ASSETS;
+  if (base === '/readiness/all')         return DEMO_ENROLLED_READINESS;
+  if (base === '/readiness')             return DEMO_ENROLLED_SUMMARY;
+  if (base === '/alerts')                return DEMO_ENROLLED_ALERTS;
+  if (base === '/maintenance/queue')     return DEMO_ENROLLED_QUEUE;
+  if (base === '/maintenance/work-orders') return DEMO_ENROLLED_QUEUE.items;
+  if (base === '/missions')              return DEMO_ENROLLED_MISSIONS;
   return null;
 }
 
@@ -518,4 +521,56 @@ export function updateResourceRequestStatus(reqId, newStatus) {
     localStorage.setItem('missionready_resource_requests', JSON.stringify(updated));
   }
   return updated;
+}
+
+// ─── Role helpers ─────────────────────────────────────────────────────────────
+
+export const ROLES = {
+  OPERATOR:   'operator',
+  MAINTAINER: 'maintainer',
+  ADMIN:      'admin',
+};
+
+export const ROLE_LABELS = {
+  operator:   'Operator',
+  maintainer: 'Maintainer',
+  admin:      'Admin',
+};
+
+/** Numeric level — higher = more privileged. */
+export const ROLE_LEVEL = {
+  operator:   1,
+  maintainer: 2,
+  admin:      3,
+};
+
+/** Returns the current user's role string, or 'operator' as fallback. */
+export function getUserRole() {
+  const user = getUser();
+  return user?.role ?? 'operator';
+}
+
+/** Returns true if the current user's role is >= minRole. */
+export function hasMinRole(minRole) {
+  const level = ROLE_LEVEL[getUserRole()] ?? 1;
+  const required = ROLE_LEVEL[minRole] ?? 1;
+  return level >= required;
+}
+
+/** Returns true if the current user has exactly the given role. */
+export function hasRole(role) {
+  return getUserRole() === role;
+}
+
+// ─── Admin API ────────────────────────────────────────────────────────────────
+
+export function adminListUsers() {
+  return request('/auth/admin/users');
+}
+
+export function adminUpdateUserRole(userId, role) {
+  return request(`/auth/admin/users/${userId}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  });
 }
